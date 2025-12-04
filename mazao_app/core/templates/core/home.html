@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Mazao{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4 mb-4">Fresh Produce, Direct from Farm</h1>
+        <p class="lead mb-4">Connect directly with farmers and get fresh agricultural products at the best prices</p>
+        <a href="{% url 'product_list' %}" class="btn btn-light btn-lg me-2">
+            <i class="fas fa-shopping-basket"></i> Shop Now
+        </a>
+        <a href="{% url 'register' %}" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-user-plus"></i> Sell Your Produce
+        </a>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-tractor fa-3x text-success"></i>
+                </div>
+                <h3>Direct from Farmers</h3>
+                <p>Buy fresh produce directly from local farmers with no middlemen</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-mobile-alt fa-3x text-success"></i>
+                </div>
+                <h3>Easy M-Pesa Payments</h3>
+                <p>Secure and convenient mobile money payments with one click</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-shipping-fast fa-3x text-success"></i>
+                </div>
+                <h3>Fast Delivery</h3>
+                <p>Get your fresh produce delivered to your doorstep</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Featured Products</h2>
+        <div class="row">
+            <!-- Products will be displayed here dynamically -->
+            <div class="col-md-12 text-center">
+                <p class="text-muted">Products will appear here soon!</p>
+                <a href="{% url 'product_list' %}" class="btn btn-success">
+                    Browse All Products <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

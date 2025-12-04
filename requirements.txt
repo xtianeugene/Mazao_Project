@@ -1,0 +1,24 @@
+# Django Framework
+Django==4.2.7
+
+# Database
+psycopg2-binary==2.9.7  # For PostgreSQL
+
+# Image Processing
+Pillow==10.0.0
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# HTTP Requests (for M-Pesa API)
+requests==2.31.0
+
+# Security
+cryptography==41.0.7
+
+# Date/Time
+python-dateutil==2.8.2
+
+# API Development (optional)
+djangorestframework==3.14.0
+django-cors-headers==4.2.0
