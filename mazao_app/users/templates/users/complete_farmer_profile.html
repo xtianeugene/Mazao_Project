@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Complete Farmer Profile - Mazao{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-tractor"></i> Complete Your Farmer Profile</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Please provide some information about your farm to help buyers get to know you better.
+                    </p>
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Farm Name</label>
+                            {{ form.farm_name }}
+                            {% if form.farm_name.errors %}
+                            <div class="text-danger">
+                                {% for error in form.farm_name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Farm Location</label>
+                            {{ form.farm_location }}
+                            <small class="form-text text-muted">Specific location of your farm</small>
+                            {% if form.farm_location.errors %}
+                            <div class="text-danger">
+                                {% for error in form.farm_location.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Farm Size (Acres)</label>
+                                {{ form.farm_size }}
+                                {% if form.farm_size.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.farm_size.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Crops Grown</label>
+                            {{ form.crops_grown }}
+                            <small class="form-text text-muted">List the crops you grow (separate with commas)</small>
+                            {% if form.crops_grown.errors %}
+                            <div class="text-danger">
+                                {% for error in form.crops_grown.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle"></i> Complete Profile
+                            </button>
+                            <a href="{% url 'profile' %}" class="btn btn-outline-secondary">
+                                Skip for Now
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

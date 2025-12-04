@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Mazao{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}"
+                         class="rounded-circle mb-3"
+                         alt="Profile Picture"
+                         style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle bg-success d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 150px; height: 150px;">
+                        <span class="display-4 text-white">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</span>
+                    </div>
+                    {% endif %}
+
+                    <h4>{{ user.get_full_name }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+
+                    <span class="badge bg-{% if user.is_farmer %}warning{% else %}info{% endif %} mb-3">
+                        <i class="fas {% if user.is_farmer %}fa-tractor{% else %}fa-shopping-basket{% endif %}"></i>
+                        {{ user.get_user_type_display }}
+                    </span>
+
+                    <div class="list-group mt-3">
+                        <a href="{% url 'profile_update' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                        <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cog me-2"></i>Settings
+                        </a>
+                        <a href="{% url 'logout' %}" class="list-group-item list-group-item-action text-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-user"></i> Profile Information</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Personal Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Name:</th>
+                                    <td>{{ user.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td>{{ user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Phone:</th>
+                                    <td>{{ user.phone_number|default:"Not provided" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Location:</th>
+                                    <td>{{ user.location|default:"Not provided" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Account Type:</th>
+                                    <td>
+                                        <span class="badge bg-{% if user.is_farmer %}warning{% else %}info{% endif %}">
+                                            {{ user.get_user_type_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Account Status</h6>
+                            <div class="list-group">
+                                <div class="list-group-item">
+                                    <strong>Verified:</strong>
+                                    {% if user.is_verified %}
+                                    <span class="badge bg-success">Verified</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Not Verified</span>
+                                    {% endif %}
+                                </div>
+                                <div class="list-group-item">
+                                    <strong>Member Since:</strong>
+                                    {{ user.date_joined|date:"F j, Y" }}
+                                </div>
+                                <div class="list-group-item">
+                                    <strong>Last Login:</strong>
+                                    {{ user.last_login|date:"F j, Y g:i A"|default:"Never" }}
+                                </div>
+                                <div class="list-group-item">
+                                    <strong>Profile Complete:</strong>
+                                    {% if profile.is_complete %}
+                                    <span class="badge bg-success">Complete</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Incomplete</span>
+                                    <small class="d-block text-muted mt-1">Please complete your profile</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bio -->
+                    {% if profile.bio %}
+                    <div class="mb-4">
+                        <h6>Bio</h6>
+                        <p class="card card-body bg-light">{{ profile.bio }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Type-specific Information -->
+                    {% if user.is_farmer %}
+                    <div class="mb-4">
+                        <h6><i class="fas fa-tractor"></i> Farm Information</h6>
+                        <div class="row">
+                            {% if profile.farm_name %}
+                            <div class="col-md-6">
+                                <strong>Farm Name:</strong>
+                                <p>{{ profile.farm_name }}</p>
+                            </div>
+                            {% endif %}
+                            {% if profile.farm_location %}
+                            <div class="col-md-6">
+                                <strong>Farm Location:</strong>
+                                <p>{{ profile.farm_location }}</p>
+                            </div>
+                            {% endif %}
+                            {% if profile.farm_size %}
+                            <div class="col-md-6">
+                                <strong>Farm Size:</strong>
+                                <p>{{ profile.farm_size }} acres</p>
+                            </div>
+                            {% endif %}
+                            {% if profile.crops_grown %}
+                            <div class="col-md-6">
+                                <strong>Crops Grown:</strong>
+                                <p>{{ profile.crops_grown }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% elif user.is_buyer %}
+                    <div class="mb-4">
+                        <h6><i class="fas fa-shopping-basket"></i> Buyer Information</h6>
+                        {% if profile.delivery_address %}
+                        <div>
+                            <strong>Delivery Address:</strong>
+                            <p class="card card-body bg-light">{{ profile.delivery_address }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Profile Completion Prompt -->
+                    {% if not profile.is_complete %}
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Complete Your Profile</h6>
+                        <p>Your profile is incomplete. Please provide more information to get the most out of Mazao.</p>
+                        <a href="{% if user.is_farmer %}{% url 'complete_farmer_profile' %}{% else %}{% url 'complete_buyer_profile' %}{% endif %}"
+                           class="btn btn-sm btn-warning">
+                            Complete Profile Now
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

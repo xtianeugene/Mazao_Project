@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Complete Buyer Profile - Mazao{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-shopping-basket"></i> Complete Your Buyer Profile</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Please provide your delivery address to receive your orders.
+                    </p>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Delivery Address</label>
+                            {{ form.delivery_address }}
+                            <small class="form-text text-muted">Where should we deliver your orders?</small>
+                            {% if form.delivery_address.errors %}
+                            <div class="text-danger">
+                                {% for error in form.delivery_address.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle"></i> Complete Profile
+                            </button>
+                            <a href="{% url 'profile' %}" class="btn btn-outline-secondary">
+                                Skip for Now
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

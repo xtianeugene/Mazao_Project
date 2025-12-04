@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}Mazao - Farm Produce Marketplace{% endblock %}</title>
 
     <!-- Bootstrap CSS -->
@@ -13,7 +14,31 @@
 
     <!-- Custom CSS -->
     <link href="/static/css/style.css" rel="stylesheet">
+    <style>
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
 
+    .card {
+        border-radius: 10px;
+        border: none;
+    }
+
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+</style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -32,7 +57,7 @@
                         <a class="nav-link" href="{% url 'home' %}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'product_list' %}">Marketplace</a>
+                        <a class="nav-link" href="/products/">Marketplace</a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
@@ -53,10 +78,10 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Login</a>
+                            <a class="nav-link" href="/users/login/">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'register' %}">Register</a>
+                            <a class="nav-link" href="/users/register/">Register</a>
                         </li>
                     {% endif %}
                 </ul>

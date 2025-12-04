@@ -15,17 +15,54 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from core.views import HomeView, register_view, about_view
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('core.urls')),
-    path('users/', include('users.urls')),
+    path('', HomeView.as_view(), name='home'),
+    path('about/', about_view, name='about'),
     path('products/', include('products.urls')),
+    path('admin/', admin.site.urls),
+    path('users/', include('users.urls')),
     path('payments/', include('payments.urls')),
     path('orders/', include('orders.urls')),
+# Custom Authentication URLs
+    path('users/login/', auth_views.LoginView.as_view(
+        template_name='users/login.html',
+        redirect_authenticated_user=True  # Redirect if already logged in
+    ), name='login'),
+    path('users/register/', register_view, name='register'),
+    # Password Reset URLs
+    path('users/password-reset/',
+         auth_views.PasswordResetView.as_view(
+             template_name='users/password_reset.html',
+             email_template_name='users/password_reset_email.html',
+             subject_template_name='users/password_reset_subject.txt',
+             success_url='/users/password-reset/done/'
+         ),
+         name='password_reset'),
+
+    path('users/password-reset/done/',
+         auth_views.PasswordResetDoneView.as_view(
+             template_name='users/password_reset_done.html'
+         ),
+         name='password_reset_done'),
+
+    path('users/password-reset-confirm/<uidb64>/<token>/',
+         auth_views.PasswordResetConfirmView.as_view(
+             template_name='users/password_reset_confirm.html',
+             success_url='/users/password-reset/complete/'
+         ),
+         name='password_reset_confirm'),
+
+    path('users/password-reset/complete/',
+         auth_views.PasswordResetCompleteView.as_view(
+             template_name='users/password_reset_complete.html'
+         ),
+         name='password_reset_complete'),
 ]
 
 # Serve media files in development

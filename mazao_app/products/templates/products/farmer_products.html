@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}My Products - Mazao{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-actions .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    .status-badge {
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>My Products</h2>
+                    <p class="text-muted mb-0">Manage your listed products</p>
+                </div>
+                <a href="{% url 'product_create' %}" class="btn btn-success">
+                    <i class="fas fa-plus-circle"></i> Add New Product
+                </a>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow border-start border-primary border-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="text-muted">Total Products</h6>
+                                    <h3 class="mb-0">{{ total_products }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-boxes fa-2x text-primary"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow border-start border-success border-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="text-muted">Active</h6>
+                                    <h3 class="mb-0">{{ active_products }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-check-circle fa-2x text-success"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow border-start border-warning border-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="text-muted">Out of Stock</h6>
+                                    <h3 class="mb-0">{{ out_of_stock }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card shadow border-start border-info border-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="text-muted">Total Views</h6>
+                                    <h3 class="mb-0">{{ total_views }}</h3>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-eye fa-2x text-info"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Table -->
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Product List</h5>
+                </div>
+                <div class="card-body">
+                    {% if products %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                    <th>Views</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in products %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% with product.images.all|first as image %}
+                                            {% if image %}
+                                            <img src="{{ image.image.url }}"
+                                                 class="rounded me-3"
+                                                 alt="{{ product.name }}"
+                                                 style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="rounded bg-light d-flex align-items-center justify-content-center me-3"
+                                                 style="width: 50px; height: 50px;">
+                                                <i class="fas fa-seedling text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                            {% endwith %}
+                                            <div>
+                                                <strong>{{ product.name|truncatechars:30 }}</strong>
+                                                <br>
+                                                <small class="text-muted">
+                                                    {% if product.featured %}
+                                                    <span class="badge bg-warning">Featured</span>
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ product.category.name|default:"-" }}</td>
+                                    <td>
+                                        <strong class="text-success">KES {{ product.price|floatformat:2 }}</strong>
+                                        <br>
+                                        <small class="text-muted">per {{ product.get_unit_display }}</small>
+                                    </td>
+                                    <td>
+                                        {{ product.quantity_available|floatformat }}
+                                        <small class="text-muted">{{ product.get_unit_display }}</small>
+                                    </td>
+                                    <td>
+                                        {% if product.status == 'active' %}
+                                        <span class="badge bg-success status-badge">Active</span>
+                                        {% elif product.status == 'draft' %}
+                                        <span class="badge bg-secondary status-badge">Draft</span>
+                                        {% elif product.status == 'out_of_stock' %}
+                                        <span class="badge bg-warning status-badge">Out of Stock</span>
+                                        {% else %}
+                                        <span class="badge bg-danger status-badge">Discontinued</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ product.views }}</td>
+                                    <td>{{ product.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="product-actions">
+                                            <a href="{% url 'product_detail' product.slug %}"
+                                               class="btn btn-sm btn-outline-primary mb-1"
+                                               title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'product_update' product.slug %}"
+                                               class="btn btn-sm btn-outline-success mb-1"
+                                               title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="#"
+                                               class="btn btn-sm btn-outline-danger mb-1"
+                                               title="Delete"
+                                               data-bs-toggle="modal"
+                                               data-bs-target="#deleteModal{{ product.id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+
+                                        <!-- Delete Modal -->
+                                        <div class="modal fade" id="deleteModal{{ product.id }}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Delete Product</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>Are you sure you want to delete "<strong>{{ product.name }}</strong>"?</p>
+                                                        <p class="text-danger">This action cannot be undone.</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <form method="post" action="{% url 'product_delete' product.slug %}">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-danger">Delete</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <!-- No Products -->
+                    <div class="text-center py-5">
+                        <i class="fas fa-seedling fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No products yet</h5>
+                        <p class="text-muted">Start by adding your first product to sell</p>
+                        <a href="{% url 'product_create' %}" class="btn btn-success">
+                            <i class="fas fa-plus-circle"></i> Add Your First Product
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

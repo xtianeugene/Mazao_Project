@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Profile - Mazao{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-edit"></i> Update Your Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Profile Picture -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <h6>Profile Picture</h6>
+                                {% if profile.profile_picture %}
+                                <img src="{{ profile.profile_picture.url }}"
+                                     class="img-thumbnail mb-3"
+                                     alt="Current Profile Picture"
+                                     style="width: 150px; height: 150px; object-fit: cover;">
+                                {% endif %}
+                            </div>
+                            <div class="col-md-9">
+                                <div class="mb-3">
+                                    {{ form.profile_picture }}
+                                    {% if form.profile_picture.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.profile_picture.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">
+                                        Upload a clear photo of yourself. Max size: 2MB
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="mb-3">
+                            <label class="form-label">Bio</label>
+                            {{ form.bio }}
+                            <small class="form-text text-muted">Tell us about yourself (optional)</small>
+                            {% if form.bio.errors %}
+                            <div class="text-danger">
+                                {% for error in form.bio.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="mb-3">
+                            <label class="form-label">Date of Birth</label>
+                            {{ form.date_of_birth }}
+                            {% if form.date_of_birth.errors %}
+                            <div class="text-danger">
+                                {% for error in form.date_of_birth.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Type-specific Fields -->
+                        {% if user.is_farmer %}
+                        <div class="card mb-4">
+                            <div class="card-header bg-warning text-white">
+                                <h6 class="mb-0"><i class="fas fa-tractor"></i> Farm Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Farm Name</label>
+                                        {{ form.farm_name }}
+                                        {% if form.farm_name.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.farm_name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Farm Location</label>
+                                        {{ form.farm_location }}
+                                        {% if form.farm_location.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.farm_location.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Farm Size (Acres)</label>
+                                        {{ form.farm_size }}
+                                        {% if form.farm_size.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.farm_size.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Crops Grown</label>
+                                        {{ form.crops_grown }}
+                                        <small class="form-text text-muted">List crops separated by commas</small>
+                                        {% if form.crops_grown.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.crops_grown.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% elif user.is_buyer %}
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0"><i class="fas fa-shopping-basket"></i> Buyer Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Delivery Address</label>
+                                    {{ form.delivery_address }}
+                                    <small class="form-text text-muted">Where should we deliver your orders?</small>
+                                    {% if form.delivery_address.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.delivery_address.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a href="{% url 'profile' %}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

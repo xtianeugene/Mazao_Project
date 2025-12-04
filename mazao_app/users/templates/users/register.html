@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Mazao{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-type-card {
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .user-type-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .user-type-card.selected {
+        border: 2px solid #28a745;
+        background-color: rgba(40, 167, 69, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-user-plus"></i> Create Your Account</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- User Type Selection -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">I want to join as a:</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="card user-type-card text-center p-4"
+                                         onclick="document.getElementById('id_user_type_0').checked = true; highlightCard(this);">
+                                        <div class="card-body">
+                                            <i class="fas fa-tractor fa-3x text-success mb-3"></i>
+                                            <h5>Farmer</h5>
+                                            <p class="text-muted">Sell your fresh produce directly to buyers</p>
+                                            <div class="form-check d-none">
+                                                {{ user_form.user_type.0 }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="card user-type-card text-center p-4"
+                                         onclick="document.getElementById('id_user_type_1').checked = true; highlightCard(this);">
+                                        <div class="card-body">
+                                            <i class="fas fa-shopping-basket fa-3x text-success mb-3"></i>
+                                            <h5>Buyer</h5>
+                                            <p class="text-muted">Buy fresh produce directly from farmers</p>
+                                            <div class="form-check d-none">
+                                                {{ user_form.user_type.1 }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if user_form.user_type.errors %}
+                            <div class="text-danger">
+                                {% for error in user_form.user_type.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Basic Information -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">First Name</label>
+                                {{ user_form.first_name }}
+                                {% if user_form.first_name.errors %}
+                                <div class="text-danger">
+                                    {% for error in user_form.first_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Last Name</label>
+                                {{ user_form.last_name }}
+                                {% if user_form.last_name.errors %}
+                                <div class="text-danger">
+                                    {% for error in user_form.last_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            {{ user_form.email }}
+                            {% if user_form.email.errors %}
+                            <div class="text-danger">
+                                {% for error in user_form.email.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            {{ user_form.phone_number }}
+                            <small class="form-text text-muted">Format: +254712345678</small>
+                            {% if user_form.phone_number.errors %}
+                            <div class="text-danger">
+                                {% for error in user_form.phone_number.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Password</label>
+                                {{ user_form.password1 }}
+                                {% if user_form.password1.errors %}
+                                <div class="text-danger">
+                                    {% for error in user_form.password1.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Confirm Password</label>
+                                {{ user_form.password2 }}
+                                {% if user_form.password2.errors %}
+                                <div class="text-danger">
+                                    {% for error in user_form.password2.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-user-plus"></i> Create Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr>
+
+                    <div class="text-center">
+                        <p>Already have an account?
+                            <a href="{% url 'login' %}" class="text-decoration-none">Login here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function highlightCard(card) {
+        // Remove selection from all cards
+        document.querySelectorAll('.user-type-card').forEach(c => {
+            c.classList.remove('selected');
+        });
+        // Add selection to clicked card
+        card.classList.add('selected');
+    }
+
+    // Initialize selection on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const farmerRadio = document.getElementById('id_user_type_0');
+        const buyerRadio = document.getElementById('id_user_type_1');
+        const farmerCard = document.querySelector('.col-md-6:first-child .user-type-card');
+        const buyerCard = document.querySelector('.col-md-6:last-child .user-type-card');
+
+        if (farmerRadio.checked) {
+            highlightCard(farmerCard);
+        } else if (buyerRadio.checked) {
+            highlightCard(buyerCard);
+        } else {
+            // Default to buyer
+            buyerRadio.checked = true;
+            highlightCard(buyerCard);
+        }
+    });
+</script>
+{% endblock %}

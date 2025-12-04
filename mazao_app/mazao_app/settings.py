@@ -44,6 +44,13 @@ INSTALLED_APPS = [
     'payments.apps.PaymentsConfig',
     'orders.apps.OrdersConfig',
 ]
+# Custom user model
+AUTH_USER_MODEL = 'users.CustomUser'
+
+# Login/Logout URLs
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'home'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -119,7 +126,7 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.backends.BigAutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # M-Pesa Configuration
 MPESA_CONFIG = {
@@ -130,3 +137,17 @@ MPESA_CONFIG = {
     'CALLBACK_URL': os.getenv('MPESA_CALLBACK_URL'),
     'ENVIRONMENT': os.getenv('MPESA_ENVIRONMENT', 'sandbox'),
 }
+
+# Email Configuration for Password Reset
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # or your email provider
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'  # Your email
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Your app password (not regular password)
+
+# For development/testing only - prints emails to console
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Default from email
+DEFAULT_FROM_EMAIL = 'noreply@mazao.com'

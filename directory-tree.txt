@@ -1,0 +1,183 @@
+Mazao_Project/
+├── mazao_app/
+│   ├── core/
+│   │   ├── __pycache__/
+│   │   │   ├── __init__.cpython-314.pyc
+│   │   │   ├── admin.cpython-314.pyc
+│   │   │   ├── apps.cpython-314.pyc
+│   │   │   ├── models.cpython-314.pyc
+│   │   │   ├── urls.cpython-314.pyc
+│   │   │   └── views.cpython-314.pyc
+│   │   ├── migrations/
+│   │   │   ├── __pycache__/
+│   │   │   │   └── __init__.cpython-314.pyc
+│   │   │   └── __init__.py
+│   │   ├── templates/
+│   │   │   ├── core/
+│   │   │       ├── about.html
+│   │   │       ├── base.html
+│   │   │       └── home.html
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   ├── mazao_app/
+│   │   ├── __pycache__/
+│   │   │   ├── __init__.cpython-314.pyc
+│   │   │   ├── settings.cpython-314.pyc
+│   │   │   ├── urls.cpython-314.pyc
+│   │   │   └── wsgi.cpython-314.pyc
+│   │   ├── __init__.py
+│   │   ├── asgi.py
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   └── wsgi.py
+│   ├── media/
+│   │   ├── products/
+│   │   ├── profile_pictures/
+│   │   ├── users/
+│   │       ├── user_2/
+│   │           └── profile_2_2025-12-04.jpg
+│   ├── orders/
+│   │   ├── __pycache__/
+│   │   │   ├── __init__.cpython-314.pyc
+│   │   │   ├── admin.cpython-314.pyc
+│   │   │   ├── apps.cpython-314.pyc
+│   │   │   ├── models.cpython-314.pyc
+│   │   │   ├── urls.cpython-314.pyc
+│   │   │   └── views.cpython-314.pyc
+│   │   ├── migrations/
+│   │   │   ├── __pycache__/
+│   │   │   │   └── __init__.cpython-314.pyc
+│   │   │   └── __init__.py
+│   │   ├── templates/
+│   │   │   ├── orders/
+│   │   │       ├── order_detail.html
+│   │   │       ├── order_list.html
+│   │   │       └── order_tracking.html
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   ├── payments/
+│   │   ├── __pycache__/
+│   │   │   ├── __init__.cpython-314.pyc
+│   │   │   ├── admin.cpython-314.pyc
+│   │   │   ├── apps.cpython-314.pyc
+│   │   │   ├── models.cpython-314.pyc
+│   │   │   ├── urls.cpython-314.pyc
+│   │   │   └── views.cpython-314.pyc
+│   │   ├── migrations/
+│   │   │   ├── __pycache__/
+│   │   │   │   └── __init__.cpython-314.pyc
+│   │   │   └── __init__.py
+│   │   ├── templates/
+│   │   │   ├── payments/
+│   │   │       ├── checkout.html
+│   │   │       ├── payment_failed.html
+│   │   │       └── payment_success.html
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── callbacks.py
+│   │   ├── models.py
+│   │   ├── mpesa.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   ├── utils.py
+│   │   └── views.py
+│   ├── products/
+│   │   ├── __pycache__/
+│   │   │   ├── __init__.cpython-314.pyc
+│   │   │   ├── admin.cpython-314.pyc
+│   │   │   ├── apps.cpython-314.pyc
+│   │   │   ├── forms.cpython-314.pyc
+│   │   │   ├── models.cpython-314.pyc
+│   │   │   ├── urls.cpython-314.pyc
+│   │   │   └── views.cpython-314.pyc
+│   │   ├── migrations/
+│   │   │   ├── __pycache__/
+│   │   │   │   ├── 0001_initial.cpython-314.pyc
+│   │   │   │   └── __init__.cpython-314.pyc
+│   │   │   ├── 0001_initial.py
+│   │   │   └── __init__.py
+│   │   ├── templates/
+│   │   │   ├── products/
+│   │   │       ├── farmer_products.html
+│   │   │       ├── my_products.html
+│   │   │       ├── product_detail.html
+│   │   │       ├── product_form.html
+│   │   │       └── product_list.html
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── forms.py
+│   │   ├── models.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   ├── static/
+│   │   ├── css/
+│   │   │   ├── bootstrap.min.css
+│   │   │   └── style.css
+│   │   ├── images/
+│   │   ├── js/
+│   │       ├── main.js
+│   │       └── mpesa.js
+│   ├── templates/
+│   │   ├── registration/
+│   │   └── base.html
+│   ├── users/
+│   │   ├── __pycache__/
+│   │   │   ├── __init__.cpython-314.pyc
+│   │   │   ├── admin.cpython-314.pyc
+│   │   │   ├── apps.cpython-314.pyc
+│   │   │   ├── forms.cpython-314.pyc
+│   │   │   ├── models.cpython-314.pyc
+│   │   │   ├── signals.cpython-314.pyc
+│   │   │   ├── urls.cpython-314.pyc
+│   │   │   └── views.cpython-314.pyc
+│   │   ├── migrations/
+│   │   │   ├── __pycache__/
+│   │   │   │   ├── 0001_initial.cpython-314.pyc
+│   │   │   │   └── __init__.cpython-314.pyc
+│   │   │   ├── 0001_initial.py
+│   │   │   └── __init__.py
+│   │   ├── templates/
+│   │   │   ├── users/
+│   │   │       ├── complete_buyer_profile.html
+│   │   │       ├── complete_farmer_profile.html
+│   │   │       ├── dashboard.html
+│   │   │       ├── login.html
+│   │   │       ├── password_reset.html
+│   │   │       ├── password_reset_complete.html
+│   │   │       ├── password_reset_confirm.html
+│   │   │       ├── password_reset_done.html
+│   │   │       ├── password_reset_email.html
+│   │   │       ├── password_reset_subject.txt
+│   │   │       ├── profile.html
+│   │   │       ├── profile_update.html
+│   │   │       └── register.html
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── forms.py
+│   │   ├── models.py
+│   │   ├── signals.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── constants.py
+│   │   └── helpers.py
+│   ├── db.sqlite3
+│   └── manage.py
+├── README.md
+└── requirements.txt

@@ -1,0 +1,412 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Mazao{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .form-section h5 {
+        color: #28a745;
+        border-bottom: 2px solid #28a745;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    /* Ensure all form controls are visible */
+    .form-control, .form-select {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-{% if title == 'Add New Product' %}plus-circle{% else %}edit{% endif %}"></i> {{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Basic Information Section -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-info-circle"></i> Basic Information</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Product Name *</label>
+                                    <input type="text"
+                                           name="{{ form.name.name }}"
+                                           id="{{ form.name.id_for_label }}"
+                                           class="form-control {% if form.name.errors %}is-invalid{% endif %}"
+                                           value="{{ form.name.value|default:'' }}"
+                                           placeholder="Enter product name"
+                                           required>
+                                    {% if form.name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Category *</label>
+                                    <select name="{{ form.category.name }}"
+                                            id="{{ form.category.id_for_label }}"
+                                            class="form-select {% if form.category.errors %}is-invalid{% endif %}"
+                                            required>
+                                        <option value="">Select Category</option>
+                                        {% for value, label in form.category.field.choices %}
+                                            <option value="{{ value }}" {% if form.category.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.category.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.category.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Description *</label>
+                                <textarea name="{{ form.description.name }}"
+                                          id="{{ form.description.id_for_label }}"
+                                          class="form-control {% if form.description.errors %}is-invalid{% endif %}"
+                                          rows="4"
+                                          placeholder="Describe your product in detail..."
+                                          required>{{ form.description.value|default:'' }}</textarea>
+                                <small class="form-text text-muted">
+                                    Describe your product in detail. Include quality, benefits, and any special features.
+                                </small>
+                                {% if form.description.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.description.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Pricing & Quantity Section -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-tag"></i> Pricing & Quantity</h5>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Price (KES) *</label>
+                                    <input type="number"
+                                           name="{{ form.price.name }}"
+                                           id="{{ form.price.id_for_label }}"
+                                           class="form-control {% if form.price.errors %}is-invalid{% endif %}"
+                                           value="{{ form.price.value|default:'' }}"
+                                           placeholder="0.00"
+                                           step="0.01"
+                                           min="0"
+                                           required>
+                                    {% if form.price.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.price.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Unit *</label>
+                                    <select name="{{ form.unit.name }}"
+                                            id="{{ form.unit.id_for_label }}"
+                                            class="form-select {% if form.unit.errors %}is-invalid{% endif %}"
+                                            required>
+                                        <option value="">Select Unit</option>
+                                        {% for value, label in form.unit.field.choices %}
+                                            <option value="{{ value }}" {% if form.unit.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.unit.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.unit.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Quantity Available *</label>
+                                    <input type="number"
+                                           name="{{ form.quantity.name }}"  <!-- Changed from quantity_available to quantity -->
+                                           id="{{ form.quantity.id_for_label }}"
+                                           class="form-control {% if form.quantity.errors %}is-invalid{% endif %}"
+                                           value="{{ form.quantity.value|default:'' }}"
+                                           placeholder="0"
+                                           min="1"
+                                           required>
+                                    {% if form.quantity.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.quantity.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Minimum Order Quantity</label>
+                                    <input type="number"
+                                           name="{{ form.min_order_quantity.name }}"
+                                           id="{{ form.min_order_quantity.id_for_label }}"
+                                           class="form-control {% if form.min_order_quantity.errors %}is-invalid{% endif %}"
+                                           value="{{ form.min_order_quantity.value|default:'1' }}"
+                                           placeholder="1"
+                                           min="1">
+                                    <small class="form-text text-muted">
+                                        Minimum quantity a buyer must order (default: 1)
+                                    </small>
+                                    {% if form.min_order_quantity.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.min_order_quantity.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Maximum Order Quantity</label>
+                                    <input type="number"
+                                           name="{{ form.max_order_quantity.name }}"
+                                           id="{{ form.max_order_quantity.id_for_label }}"
+                                           class="form-control {% if form.max_order_quantity.errors %}is-invalid{% endif %}"
+                                           value="{{ form.max_order_quantity.value|default:'' }}"
+                                           placeholder="Leave blank for no limit"
+                                           min="1">
+                                    <small class="form-text text-muted">
+                                        Leave blank for no maximum limit
+                                    </small>
+                                    {% if form.max_order_quantity.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.max_order_quantity.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Details Section -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-clipboard-check"></i> Product Details</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               name="{{ form.is_organic.name }}"
+                                               id="{{ form.is_organic.id_for_label }}"
+                                               class="form-check-input"
+                                               {% if form.is_organic.value %}checked{% endif %}>
+                                        <label class="form-check-label" for="{{ form.is_organic.id_for_label }}">
+                                            Organic Product
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               name="{{ form.is_fresh.name }}"
+                                               id="{{ form.is_fresh.id_for_label }}"
+                                               class="form-check-input"
+                                               {% if form.is_fresh.value %}checked{% endif %}>
+                                        <label class="form-check-label" for="{{ form.is_fresh.id_for_label }}">
+                                            Fresh Product
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Available From</label>
+                                    <input type="date"
+                                           name="{{ form.available_from.name }}"
+                                           id="{{ form.available_from.id_for_label }}"
+                                           class="form-control {% if form.available_from.errors %}is-invalid{% endif %}"
+                                           value="{{ form.available_from.value|default:'' }}">
+                                    {% if form.available_from.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.available_from.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Available Until</label>
+                                    <input type="date"
+                                           name="{{ form.available_until.name }}"
+                                           id="{{ form.available_until.id_for_label }}"
+                                           class="form-control {% if form.available_until.errors %}is-invalid{% endif %}"
+                                           value="{{ form.available_until.value|default:'' }}">
+                                    {% if form.available_until.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.available_until.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Location Section -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-map-marker-alt"></i> Location</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Location</label>
+                                    <input type="text"
+                                           name="{{ form.location.name }}"
+                                           id="{{ form.location.id_for_label }}"
+                                           class="form-control {% if form.location.errors %}is-invalid{% endif %}"
+                                           value="{{ form.location.value|default:'' }}"
+                                           placeholder="Specific location/village">
+                                    <small class="form-text text-muted">
+                                        Specific location where product is available
+                                    </small>
+                                    {% if form.location.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.location.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">County *</label>
+                                    <select name="{{ form.county.name }}"
+                                            id="{{ form.county.id_for_label }}"
+                                            class="form-select {% if form.county.errors %}is-invalid{% endif %}"
+                                            required>
+                                        <option value="">Select County</option>
+                                        {% for value, label in form.county.field.choices %}
+                                            <option value="{{ value }}" {% if form.county.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.county.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.county.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Images Section -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-images"></i> Product Image</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Product Image</label>
+                                <input type="file"
+                                       name="{{ form.image.name }}"
+                                       id="{{ form.image.id_for_label }}"
+                                       class="form-control {% if form.image.errors %}is-invalid{% endif %}"
+                                       accept="image/*">
+                                <small class="form-text text-muted">
+                                    Upload a clear image of your product (JPEG, PNG, etc.)
+                                </small>
+                                {% if form.image.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.image.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Status Section -->
+                        <div class="form-section">
+                            <h5><i class="fas fa-cog"></i> Status & Visibility</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Status *</label>
+                                    <select name="{{ form.status.name }}"
+                                            id="{{ form.status.id_for_label }}"
+                                            class="form-select {% if form.status.errors %}is-invalid{% endif %}"
+                                            required>
+                                        <option value="">Select Status</option>
+                                        {% for value, label in form.status.field.choices %}
+                                            <option value="{{ value }}" {% if form.status.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if form.status.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.status.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check mt-4">
+                                        <input type="checkbox"
+                                               name="{{ form.featured.name }}"
+                                               id="{{ form.featured.id_for_label }}"
+                                               class="form-check-input"
+                                               {% if form.featured.value %}checked{% endif %}>
+                                        <label class="form-check-label" for="{{ form.featured.id_for_label }}">
+                                            Feature this product
+                                        </label>
+                                        <small class="form-text text-muted d-block">
+                                            Featured products appear in highlighted sections
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save"></i> Save Product
+                            </button>
+                            <a href="{% if object %}{% url 'product_detail' object.slug %}{% else %}{% url 'farmer_products' %}{% endif %}"
+                               class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
