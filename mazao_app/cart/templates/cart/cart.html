@@ -1,0 +1,135 @@
+<!-- cart/templates/cart/cart.html -->
+{% extends 'base.html' %}
+
+{% block title %}Shopping Cart - Mazao{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-1">Shopping Cart</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Shopping Cart</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Your Cart Items</h6>
+                </div>
+                <div class="card-body">
+                    {% if cart_items %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in cart_items %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if item.product.image %}
+                                            <img src="{{ item.product.image.url }}"
+                                                 alt="{{ item.product.name }}"
+                                                 style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 10px;">
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0">{{ item.product.name }}</h6>
+                                                <small class="text-muted">{{ item.product.get_unit_display }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>KES {{ item.product.price|floatformat:2 }}</td>
+                                    <td>
+                                        <form method="post" action="{% url 'cart:update_cart_item' item.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <div class="input-group" style="width: 120px;">
+                                                <input type="number"
+                                                       name="quantity"
+                                                       value="{{ item.quantity|floatformat:2 }}"
+                                                       min="0.01"
+                                                       step="0.01"
+                                                       class="form-control form-control-sm">
+                                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                                    <i class="fas fa-sync"></i>
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                    <td class="text-success">KES {{ item.total_price|floatformat:2 }}</td>
+                                    <td>
+                                        <a href="{% url 'cart:remove_from_cart' item.id %}"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Remove this item from cart?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">Your cart is empty</h4>
+                        <p class="text-muted">Add some products to get started!</p>
+                        <a href="{% url 'products:product_list' %}" class="btn btn-success">
+                            <i class="fas fa-store"></i> Continue Shopping
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if cart_items %}
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Order Summary</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <td>Subtotal</td>
+                            <td class="text-end">KES {{ cart.total_price|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td>Delivery</td>
+                            <td class="text-end">KES 0.00</td>
+                        </tr>
+                        <tr class="table-success">
+                            <th>Total</th>
+                            <th class="text-end">KES {{ cart.total_price|floatformat:2 }}</th>
+                        </tr>
+                    </table>
+
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'products:product_list' %}" class="btn btn-outline-success">
+                            <i class="fas fa-arrow-left"></i> Continue Shopping
+                        </a>
+                        <a href="{% url 'cart:checkout' %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-lock"></i> Proceed to Checkout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

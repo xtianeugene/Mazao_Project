@@ -15,5 +15,9 @@ urlpatterns = [
 
     # Dashboard
     path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('my-orders/', views.my_orders, name='my_orders'),
+    path('orders/<int:order_id>/', views.order_detail, name='order_detail'),
+    path('farmer-orders/', views.farmer_orders, name='farmer_orders'),
+    path('farmer-orders/<int:order_id>/', views.farmer_order_detail, name='farmer_order_detail'),
 
 ]

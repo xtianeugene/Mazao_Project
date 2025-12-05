@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Mazao{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-status {
+        text-align: center;
+        padding: 2rem;
+    }
+    .status-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+    .processing-animation {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-credit-card me-2"></i> {{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Payment Status -->
+                    <div class="payment-status">
+                        {% if payment.status == 'initiated' or payment.status == 'pending' %}
+                        <div class="status-icon text-warning">
+                            <i class="fas fa-spinner processing-animation"></i>
+                        </div>
+                        <h3>Processing Payment</h3>
+                        <p class="lead">Please check your phone <strong>{{ payment.phone_number }}</strong> and enter your M-Pesa PIN to complete the payment.</p>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            The payment prompt has been sent to your phone. If you don't see it, check your messages or dial *234# to check for pending transactions.
+                        </div>
+
+                        {% elif payment.status == 'successful' %}
+                        <div class="status-icon text-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3>Payment Successful!</h3>
+                        <p class="lead">Your payment of <strong>KES {{ payment.amount|floatformat:2 }}</strong> has been received.</p>
+                        <p>Receipt Number: <strong>{{ payment.mpesa_receipt_number }}</strong></p>
+
+                        {% elif payment.status == 'failed' %}
+                        <div class="status-icon text-danger">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <h3>Payment Failed</h3>
+                        <p class="lead">{{ payment.result_description }}</p>
+
+                        {% endif %}
+                    </div>
+
+                    <!-- Order Summary -->
+                    {% if cart %}
+                    <div class="mt-4">
+                        <h5><i class="fas fa-shopping-cart me-2"></i>Order Summary</h5>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in cart_items %}
+                                    <tr>
+                                        <td>{{ item.product.name }}</td>
+                                        <td>{{ item.quantity }} {{ item.product.get_unit_display }}</td>
+                                        <td>KES {{ item.product.price|floatformat:2 }}</td>
+                                        <td>KES {{ item.total_price|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-success">
+                                        <th colspan="3">Total</th>
+                                        <th>KES {{ cart.total_price|floatformat:2 }}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Delivery Information -->
+                    {% if pending_order.delivery_address %}
+                    <div class="mt-4">
+                        <h5><i class="fas fa-truck me-2"></i>Delivery Information</h5>
+                        <div class="card">
+                            <div class="card-body">
+                                <p><strong>Address:</strong> {{ pending_order.delivery_address }}</p>
+                                {% if pending_order.delivery_instructions %}
+                                <p><strong>Instructions:</strong> {{ pending_order.delivery_instructions }}</p>
+                                {% endif %}
+                                <p><strong>Method:</strong> {{ pending_order.delivery_method|title }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4 text-center">
+                        {% if payment.status == 'initiated' or payment.status == 'pending' %}
+                        <button id="checkStatusBtn" class="btn btn-primary me-2">
+                            <i class="fas fa-sync"></i> Check Payment Status
+                        </button>
+                        <div id="statusMessage" class="mt-2"></div>
+                        {% endif %}
+
+                        {% if payment.status == 'successful' %}
+                        <a href="{% url 'orders:order_history' %}" class="btn btn-success">
+                            <i class="fas fa-list"></i> View Your Orders
+                        </a>
+                        {% elif payment.status == 'failed' %}
+                        <a href="{% url 'cart:checkout' %}" class="btn btn-warning">
+                            <i class="fas fa-redo"></i> Try Again
+                        </a>
+                        {% endif %}
+
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home"></i> Return to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Check payment status via AJAX
+    document.getElementById('checkStatusBtn')?.addEventListener('click', function() {
+        const btn = this;
+        const originalText = btn.innerHTML;
+        const statusMessage = document.getElementById('statusMessage');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+        statusMessage.innerHTML = '';
+
+        fetch("{% url 'cart:payment_status_ajax' payment.id %}", {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                statusMessage.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> ${data.message}
+                        <br>Receipt: ${data.receipt_number}
+                    </div>
+                `;
+                // Reload page after 2 seconds to show success state
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else if (data.status === 'cancelled' || data.status === 'failed') {
+                statusMessage.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle"></i> ${data.message}
+                    </div>
+                `;
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            } else {
+                statusMessage.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Payment is still pending. Please check your phone.
+                    </div>
+                `;
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+
+                // Auto-check again after 10 seconds
+                setTimeout(() => {
+                    btn.click();
+                }, 10000);
+            }
+        })
+        .catch(error => {
+            statusMessage.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Error checking status. Please try again.
+                </div>
+            `;
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    });
+
+    // Auto-check status after 5 seconds if payment is pending
+    {% if payment.status == 'initiated' or payment.status == 'pending' %}
+    setTimeout(() => {
+        document.getElementById('checkStatusBtn')?.click();
+    }, 5000);
+    {% endif %}
+</script>
+{% endblock %}

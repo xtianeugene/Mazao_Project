@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Mazao{% endblock %}
+
+{% block extra_css %}
+<style>
+    .wallet-card {
+        border: none;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+    .wallet-card:hover {
+        transform: translateY(-5px);
+    }
+    .balance-amount {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+    .transaction-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .icon-deposit {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    .icon-withdrawal {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    .icon-commission {
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <!-- Wallet Balance Card -->
+            <div class="card wallet-card border-success">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-wallet fa-3x text-success"></i>
+                    </div>
+                    <h5 class="card-title">Wallet Balance</h5>
+                    <div class="balance-amount mb-3">
+                        KES {{ wallet.balance|floatformat:2 }}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        {% if wallet.allow_withdrawals %}
+                        <a href="{% url 'initiate_withdrawal' %}" class="btn btn-success">
+                            <i class="fas fa-money-bill-wave"></i> Withdraw Funds
+                        </a>
+                        {% else %}
+                        <button class="btn btn-secondary" disabled>
+                            <i class="fas fa-exclamation-circle"></i> Withdrawals Disabled
+                        </button>
+                        {% endif %}
+
+                        <a href="{% url 'initiate_payment' %}" class="btn btn-outline-success">
+                            <i class="fas fa-plus-circle"></i> Add Funds
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card wallet-card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'initiate_payment' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-mobile-alt text-success me-2"></i>
+                            Make Payment
+                        </a>
+                        <a href="{% url 'payment_history' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-history text-primary me-2"></i>
+                            Payment History
+                        </a>
+                        {% if user.is_farmer %}
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-chart-line text-info me-2"></i>
+                            Earnings Report
+                        </a>
+                        {% endif %}
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cog text-secondary me-2"></i>
+                            Wallet Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallet Info -->
+            <div class="card wallet-card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> Wallet Information</h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                {% if wallet.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Withdrawals:</th>
+                            <td>
+                                {% if wallet.allow_withdrawals %}
+                                <span class="badge bg-success">Allowed</span>
+                                {% else %}
+                                <span class="badge bg-danger">Disabled</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Created:</th>
+                            <td>{{ wallet.created_at|date:"M d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Updated:</th>
+                            <td>{{ wallet.updated_at|date:"M d, Y" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Recent Transactions -->
+            <div class="card wallet-card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-exchange-alt"></i> Recent Transactions</h6>
+                    <span class="badge bg-secondary">{{ transactions.count }} transaction{{ transactions.count|pluralize }}</span>
+                </div>
+                <div class="card-body">
+                    {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Details</th>
+                                    <th>Amount</th>
+                                    <th>Balance After</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="transaction-icon
+                                                {% if transaction.transaction_type == 'deposit' %}icon-deposit
+                                                {% elif transaction.transaction_type == 'withdrawal' %}icon-withdrawal
+                                                {% else %}icon-commission{% endif %}">
+                                                {% if transaction.transaction_type == 'deposit' %}
+                                                <i class="fas fa-arrow-down"></i>
+                                                {% elif transaction.transaction_type == 'withdrawal' %}
+                                                <i class="fas fa-arrow-up"></i>
+                                                {% else %}
+                                                <i class="fas fa-percentage"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div class="ms-2">
+                                                <small class="text-uppercase fw-bold">
+                                                    {{ transaction.get_transaction_type_display }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {% if transaction.description %}
+                                            {{ transaction.description|truncatechars:30 }}
+                                            {% elif transaction.payment %}
+                                            Payment: {{ transaction.payment.description|truncatechars:30 }}
+                                            {% else %}
+                                            Wallet transaction
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold
+                                            {% if transaction.transaction_type == 'deposit' %}text-success
+                                            {% elif transaction.transaction_type == 'withdrawal' %}text-danger
+                                            {% else %}text-secondary{% endif %}">
+                                            {% if transaction.transaction_type == 'deposit' %}+
+                                            {% elif transaction.transaction_type == 'withdrawal' %}-
+                                            {% endif %}
+                                            KES {{ transaction.amount|floatformat:2 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            KES {{ transaction.balance_after|floatformat:2 }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ transaction.created_at|date:"M d, g:i A" }}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Show more button if there are many transactions -->
+                    {% if transactions.count > 10 %}
+                    <div class="text-center mt-3">
+                        <a href="#" class="btn btn-outline-secondary">
+                            <i class="fas fa-history"></i> View All Transactions
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% else %}
+                    <!-- No transactions -->
+                    <div class="text-center py-5">
+                        <i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No transactions yet</h5>
+                        <p class="text-muted">Your transaction history will appear here</p>
+                        <a href="{% url 'initiate_payment' %}" class="btn btn-success">
+                            <i class="fas fa-plus-circle"></i> Make Your First Payment
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="row mt-4">
+                <div class="col-md-6 mb-3">
+                    <div class="card wallet-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted">Total Deposits</h6>
+                                    <h3 class="mb-0 text-success">
+                                        KES {{ wallet.transactions.filter|floatformat:2 }}
+                                    </h3>
+                                </div>
+                                <div class="transaction-icon icon-deposit">
+                                    <i class="fas fa-arrow-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <div class="card wallet-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-muted">Total Withdrawals</h6>
+                                    <h3 class="mb-0 text-danger">
+                                        KES {{ wallet.transactions.filter|floatformat:2 }}
+                                    </h3>
+                                </div>
+                                <div class="transaction-icon icon-withdrawal">
+                                    <i class="fas fa-arrow-up"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="card wallet-card mt-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-credit-card"></i> Payment Methods</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card border">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-mobile-alt fa-2x text-success mb-3"></i>
+                                    <h6>M-Pesa</h6>
+                                    <p class="text-muted small">Kenya's leading mobile money service</p>
+                                    <div class="d-grid">
+                                        <a href="{% url 'initiate_payment' %}" class="btn btn-sm btn-outline-success">
+                                            Add Funds via M-Pesa
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <div class="card border">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-university fa-2x text-primary mb-3"></i>
+                                    <h6>Bank Transfer</h6>
+                                    <p class="text-muted small">Coming soon</p>
+                                    <div class="d-grid">
+                                        <button class="btn btn-sm btn-outline-secondary" disabled>
+                                            Coming Soon
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

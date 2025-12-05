@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle fa-3x text-success"></i>
+                    </div>
+                    <h3>Payment Successful!</h3>
+                    <p class="text-muted">Thank you for your purchase.</p>
+
+                    {% if order %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-info-circle"></i>
+                        Order #{{ order.id }} has been received and is being processed.
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <a href="{% url 'home' %}" class="btn btn-primary">
+                            <i class="fas fa-home"></i> Go to Home
+                        </a>
+                        {% if order %}
+                        <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-shopping-bag"></i> View Order
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'payments:history' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-history"></i> Payment History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

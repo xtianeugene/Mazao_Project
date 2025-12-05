@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-mobile-alt me-2"></i>M-Pesa Payment</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Please confirm your payment details below.
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Payment Summary</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <p><strong>Amount:</strong> <span class="text-success h5">KES {{ amount|floatformat:2 }}</span></p>
+                                <p><strong>Phone:</strong> {{ phone }}</p>
+                                {% if cart_id %}
+                                <p><strong>Items:</strong> Cart items</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" action="{% url 'payments:process_mpesa' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="phone" value="{{ phone }}">
+                        <input type="hidden" name="amount" value="{{ amount }}">
+
+                        <div class="mb-3">
+                            <label for="confirm_phone" class="form-label">Confirm Phone Number</label>
+                            <input type="tel" class="form-control" id="confirm_phone"
+                                   name="confirm_phone" value="{{ phone }}" required>
+                            <div class="form-text">Enter the phone number to receive M-Pesa prompt</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Pay with M-Pesa
+                            </button>
+                            <a href="{% url 'cart:checkout' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Checkout
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .countdown {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+    .mpesa-instructions {
+        border-left: 4px solid #28a745;
+        padding-left: 15px;
+        margin: 20px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-mobile-alt me-2"></i>M-Pesa Payment Processing</h4>
+                </div>
+                <div class="card-body">
+
+                    <!-- Payment Status -->
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                        </div>
+                        <h3>Processing M-Pesa Payment</h3>
+                        <p class="text-muted">Please complete the payment on your phone</p>
+
+                        <!-- Countdown Timer -->
+                        <div class="countdown mb-3" id="countdown">300</div>
+                        <small class="text-muted">Seconds remaining to complete payment</small>
+                    </div>
+
+                    <!-- Payment Details -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Payment Details</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Amount:</strong> <span class="text-success">KES {{ amount|floatformat:2 }}</span></p>
+                                    <p><strong>Phone:</strong> {{ phone }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Payment ID:</strong> <code>{{ payment_id }}</code></p>
+                                    <p><strong>Time:</strong> {{ timestamp|date:"H:i:s" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- M-Pesa Instructions -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Instructions</h5>
+                        </div>
+                        <div class="card-body">
+                            <ol class="mpesa-instructions">
+                                <li>You will receive an <strong>M-Pesa prompt</strong> on your phone <strong>{{ phone }}</strong></li>
+                                <li>Enter your <strong>M-Pesa PIN</strong> when prompted</li>
+                                <li>Wait for the <strong>confirmation message</strong> from M-Pesa</li>
+                                <li>Payment will be confirmed automatically</li>
+                            </ol>
+
+                            <div class="alert alert-info">
+                                <i class="fas fa-lightbulb"></i>
+                                <strong>Tip:</strong> Keep this page open until payment is complete.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Status Updates -->
+                    <div id="payment-status" class="mb-4">
+                        <div class="alert alert-warning" id="status-message">
+                            <i class="fas fa-sync-alt fa-spin me-2"></i>
+                            Waiting for payment confirmation...
+                        </div>
+
+                        <div id="payment-details" style="display: none;">
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Payment Successful!</strong>
+                                <div id="receipt-details"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <button id="retry-payment" class="btn btn-warning" style="display: none;">
+                            <i class="fas fa-redo me-2"></i>Retry Payment
+                        </button>
+
+                        <a href="{% url 'cart:view_cart' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-shopping-cart me-2"></i>Back to Cart
+                        </a>
+
+                        <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-home me-2"></i>Return Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentId = '{{ payment_id }}';
+    const amount = {{ amount|default:0 }};
+    const phone = '{{ phone }}';
+
+    // Countdown timer
+    let timeLeft = 300; // 5 minutes
+    const countdownElement = document.getElementById('countdown');
+
+    function updateCountdown() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        countdownElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        if (timeLeft > 0) {
+            timeLeft--;
+            setTimeout(updateCountdown, 1000);
+        } else {
+            countdownElement.textContent = "Time's up!";
+            countdownElement.className = "countdown text-danger";
+            document.getElementById('status-message').innerHTML =
+                '<i class="fas fa-exclamation-triangle me-2"></i>Payment timeout. Please try again.';
+            document.getElementById('retry-payment').style.display = 'block';
+        }
+    }
+
+    updateCountdown();
+
+    // Poll for payment status
+    function checkPaymentStatus() {
+        if (!paymentId) return;
+
+        fetch(`/payments/check-status/${paymentId}/`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Payment status:', data);
+
+            if (data.status === 'success') {
+                // Payment successful
+                document.getElementById('status-message').style.display = 'none';
+                document.getElementById('payment-details').style.display = 'block';
+                document.getElementById('receipt-details').innerHTML = `
+                    <p>Receipt: ${data.receipt_number}</p>
+                    <p>Amount: KES ${data.amount}</p>
+                    <p>Time: ${data.timestamp}</p>
+                `;
+
+                // Redirect to success page after 3 seconds
+                setTimeout(() => {
+                    window.location.href = "{% url 'cart:payment_success' %}";
+                }, 3000);
+
+            } else if (data.status === 'pending') {
+                // Still pending, check again in 5 seconds
+                setTimeout(checkPaymentStatus, 5000);
+
+            } else if (data.status === 'failed') {
+                // Payment failed
+                document.getElementById('status-message').innerHTML =
+                    `<i class="fas fa-times-circle me-2"></i>Payment failed: ${data.message}`;
+                document.getElementById('status-message').className = 'alert alert-danger';
+                document.getElementById('retry-payment').style.display = 'block';
+            }
+        })
+        .catch(error => {
+            console.error('Error checking payment status:', error);
+            // Retry after 10 seconds on error
+            setTimeout(checkPaymentStatus, 10000);
+        });
+    }
+
+    // Start checking payment status
+    checkPaymentStatus();
+
+    // Retry payment button
+    document.getElementById('retry-payment').addEventListener('click', function() {
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+
+        fetch("{% url 'cart:process_payment' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                phone: phone,
+                amount: amount,
+                payment_id: paymentId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to retry payment: ' + data.error);
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-redo me-2"></i>Retry Payment';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-redo me-2"></i>Retry Payment';
+        });
+    });
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Simulate M-Pesa prompt (for demo/testing)
+    function simulateMpesaPrompt() {
+        console.log('M-Pesa prompt would be sent to:', phone);
+        // In real implementation, this would call your backend to initiate STK Push
+    }
+
+    // Start the payment process
+    if (paymentId && amount > 0 && phone) {
+        // Uncomment this line to simulate payment initiation
+        // simulateMpesaPrompt();
+
+        console.log(`Payment initiated: ${paymentId}, KES ${amount}, ${phone}`);
+    }
+});
+</script>
+{% endblock %}

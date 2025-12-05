@@ -15,8 +15,23 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+env_path = Path('.') / '.env'
+load_dotenv(dotenv_path=env_path)
 
+print(f"DEBUG: .env loaded from {env_path.absolute()}")
+print(f"DEBUG: MPESA_CONSUMER_KEY exists: {'MPESA_CONSUMER_KEY' in os.environ}")
+print(f"DEBUG: MPESA_CONSUMER_KEY value: {os.getenv('MPESA_CONSUMER_KEY', 'NOT FOUND')[:10]}...")
+print("DEBUG: MPESA_CONSUMER_SECRET exists:", bool(os.getenv("MPESA_CONSUMER_SECRET")))
+print("DEBUG: MPESA_CONSUMER_SECRET value:", repr(os.getenv("MPESA_CONSUMER_SECRET")))
+
+
+# Then define your M-Pesa settings
+MPESA_ENVIRONMENT = os.getenv('MPESA_ENVIRONMENT', 'sandbox')
+MPESA_CONSUMER_KEY = os.getenv('MPESA_CONSUMER_KEY', '')
+MPESA_CONSUMER_SECRET = os.getenv('MPESA_CONSUMER_SECRET', '')
+MPESA_SHORTCODE = os.getenv('MPESA_SHORTCODE', '174379')
+MPESA_PASSKEY = os.getenv('MPESA_PASSKEY', '')
+MPESA_CALLBACK_URL = os.getenv('MPESA_CALLBACK_URL', '')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -36,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #'django_daraja'
 
     # Local apps
     'core.apps.CoreConfig',
@@ -43,6 +59,7 @@ INSTALLED_APPS = [
     'products.apps.ProductsConfig',
     'payments.apps.PaymentsConfig',
     'orders.apps.OrdersConfig',
+    'cart',
 ]
 # Custom user model
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -127,16 +144,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# M-Pesa Configuration
-MPESA_CONFIG = {
-    'CONSUMER_KEY': os.getenv('MPESA_CONSUMER_KEY'),
-    'CONSUMER_SECRET': os.getenv('MPESA_CONSUMER_SECRET'),
-    'SHORTCODE': os.getenv('MPESA_SHORTCODE'),
-    'PASSKEY': os.getenv('MPESA_PASSKEY'),
-    'CALLBACK_URL': os.getenv('MPESA_CALLBACK_URL'),
-    'ENVIRONMENT': os.getenv('MPESA_ENVIRONMENT', 'sandbox'),
-}
 
 # Email Configuration for Password Reset
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

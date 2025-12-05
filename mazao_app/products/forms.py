@@ -12,7 +12,7 @@ class ProductForm(forms.ModelForm):
         fields = [
             'name', 'description', 'price', 'category', 'image',
             'quantity', 'unit', 'location', 'county', 'is_organic',
-            'is_fresh', 'min_order_quantity', 'available_from', 'available_until'
+            'is_fresh', 'min_order_quantity', 'available_from', 'available_until', 'status'
         ]
         widgets = {
             'name': forms.TextInput(attrs={
@@ -57,6 +57,7 @@ class ProductForm(forms.ModelForm):
                 'class': 'form-control',
                 'type': 'date'
             }),
+            'status': forms.Select(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):

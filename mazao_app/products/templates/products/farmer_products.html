@@ -11,6 +11,20 @@
     .status-badge {
         font-size: 0.75rem;
     }
+    .product-image {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+    }
+    .no-image-placeholder {
+        width: 50px;
+        height: 50px;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+    }
 </style>
 {% endblock %}
 
@@ -24,7 +38,7 @@
                     <h2>My Products</h2>
                     <p class="text-muted mb-0">Manage your listed products</p>
                 </div>
-                <a href="{% url 'product_create' %}" class="btn btn-success">
+                <a href="{% url 'products:add_product' %}" class="btn btn-success">
                     <i class="fas fa-plus-circle"></i> Add New Product
                 </a>
             </div>
@@ -119,25 +133,24 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            {% with product.images.all|first as image %}
-                                            {% if image %}
-                                            <img src="{{ image.image.url }}"
-                                                 class="rounded me-3"
-                                                 alt="{{ product.name }}"
-                                                 style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% if product.image %}
+                                            <img src="{{ product.image.url }}"
+                                                 class="rounded me-3 product-image"
+                                                 alt="{{ product.name }}">
                                             {% else %}
-                                            <div class="rounded bg-light d-flex align-items-center justify-content-center me-3"
-                                                 style="width: 50px; height: 50px;">
-                                                <i class="fas fa-seedling text-muted"></i>
+                                            <div class="rounded me-3 no-image-placeholder">
+                                                <i class="fas fa-seedling"></i>
                                             </div>
                                             {% endif %}
-                                            {% endwith %}
                                             <div>
                                                 <strong>{{ product.name|truncatechars:30 }}</strong>
                                                 <br>
                                                 <small class="text-muted">
                                                     {% if product.featured %}
                                                     <span class="badge bg-warning">Featured</span>
+                                                    {% endif %}
+                                                    {% if product.is_organic %}
+                                                    <span class="badge bg-success">Organic</span>
                                                     {% endif %}
                                                 </small>
                                             </div>
@@ -150,7 +163,7 @@
                                         <small class="text-muted">per {{ product.get_unit_display }}</small>
                                     </td>
                                     <td>
-                                        {{ product.quantity_available|floatformat }}
+                                        {{ product.quantity }}
                                         <small class="text-muted">{{ product.get_unit_display }}</small>
                                     </td>
                                     <td>
@@ -167,24 +180,25 @@
                                     <td>{{ product.views }}</td>
                                     <td>{{ product.created_at|date:"M d, Y" }}</td>
                                     <td>
-                                        <div class="product-actions">
-                                            <a href="{% url 'product_detail' product.slug %}"
-                                               class="btn btn-sm btn-outline-primary mb-1"
-                                               title="View">
+                                        <div class="product-actions d-flex flex-column flex-md-row gap-1">
+                                            <a href="{% url 'products:product_detail' product.slug %}"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="View"
+                                               target="_blank">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{% url 'product_update' product.slug %}"
-                                               class="btn btn-sm btn-outline-success mb-1"
+                                            <a href="{% url 'products:edit_product' product.slug %}"
+                                               class="btn btn-sm btn-outline-success"
                                                title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <a href="#"
-                                               class="btn btn-sm btn-outline-danger mb-1"
+                                            <button type="button"
+                                               class="btn btn-sm btn-outline-danger"
                                                title="Delete"
                                                data-bs-toggle="modal"
                                                data-bs-target="#deleteModal{{ product.id }}">
                                                 <i class="fas fa-trash"></i>
-                                            </a>
+                                            </button>
                                         </div>
 
                                         <!-- Delete Modal -->
@@ -201,7 +215,7 @@
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <form method="post" action="{% url 'product_delete' product.slug %}">
+                                                        <form method="post" action="{% url 'products:delete_product' product.slug %}">
                                                             {% csrf_token %}
                                                             <button type="submit" class="btn btn-danger">Delete</button>
                                                         </form>
@@ -215,13 +229,45 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination -->
+                    {% if products.has_other_pages %}
+                    <nav aria-label="Product pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if products.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ products.previous_page_number }}">Previous</a>
+                            </li>
+                            {% endif %}
+
+                            {% for num in products.paginator.page_range %}
+                            {% if products.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+
+                            {% if products.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ products.next_page_number }}">Next</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+
                     {% else %}
                     <!-- No Products -->
                     <div class="text-center py-5">
                         <i class="fas fa-seedling fa-4x text-muted mb-3"></i>
                         <h5 class="text-muted">No products yet</h5>
                         <p class="text-muted">Start by adding your first product to sell</p>
-                        <a href="{% url 'product_create' %}" class="btn btn-success">
+                        <a href="{% url 'products:add_product' %}" class="btn btn-success">
                             <i class="fas fa-plus-circle"></i> Add Your First Product
                         </a>
                     </div>
@@ -231,4 +277,22 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add confirmation for delete actions
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteButtons = document.querySelectorAll('.btn-outline-danger[data-bs-toggle="modal"]');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                const productName = this.closest('tr').querySelector('strong').textContent;
+                const modalBody = document.querySelector(this.getAttribute('data-bs-target') + ' .modal-body p:first-child');
+                if (modalBody) {
+                    modalBody.innerHTML = `Are you sure you want to delete "<strong>${productName}</strong>"?`;
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

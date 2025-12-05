@@ -12,6 +12,7 @@ from .forms import ProductForm, ProductSearchForm, ProductReviewForm
 from users.models import CustomUser
 from django.db import models
 
+
 # Product List View
 @login_required
 def my_products(request):
@@ -31,6 +32,7 @@ def my_products(request):
         'title': 'My Products'
     }
     return render(request, 'products/my_products.html', context)
+
 
 class ProductListView(ListView):
     model = Product
@@ -58,8 +60,8 @@ class ProductListView(ListView):
                 queryset = queryset.filter(
                     Q(name__icontains=query) |
                     Q(description__icontains=query) |
-                    Q(farmer__first_name__icontains=query) |
-                    Q(farmer__last_name__icontains=query)
+                    Q(seller__first_name__icontains=query) |  # FIXED: Changed from farmer to seller
+                    Q(seller__last_name__icontains=query)  # FIXED: Changed from farmer to seller
                 )
 
             # Category filter
@@ -171,8 +173,10 @@ class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Product
     form_class = ProductForm
     template_name = 'products/product_form.html'
+    success_url = reverse_lazy('products:my_products')  # FIXED: Added namespace
 
     def test_func(self):
+        # Only farmers can add products
         return self.request.user.is_farmer
 
     def handle_no_permission(self):
@@ -180,14 +184,15 @@ class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return redirect('home')
 
     def form_valid(self, form):
-        form.instance.farmer = self.request.user
+        # Set the seller to the current user before saving
+        form.instance.seller = self.request.user
         response = super().form_valid(form)
         messages.success(self.request, f"Product '{form.instance.name}' created successfully!")
         return response
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['request'] = self.request
+        kwargs['request'] = self.request  # Pass request to form if needed
         return kwargs
 
     def get_context_data(self, **kwargs):
@@ -201,10 +206,11 @@ class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Product
     form_class = ProductForm
     template_name = 'products/product_form.html'
+    success_url = reverse_lazy('products:my_products')  # FIXED: Added namespace
 
     def test_func(self):
         product = self.get_object()
-        return self.request.user.is_farmer and product.farmer == self.request.user
+        return self.request.user.is_farmer and product.seller == self.request.user  # FIXED: Changed from farmer to seller
 
     def handle_no_permission(self):
         messages.error(self.request, "You can only edit your own products.")
@@ -230,11 +236,11 @@ class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Product
     template_name = 'products/product_confirm_delete.html'
-    success_url = reverse_lazy('farmer_products')
+    success_url = reverse_lazy('products:my_products')  # FIXED: Changed to my_products and added namespace
 
     def test_func(self):
         product = self.get_object()
-        return self.request.user.is_farmer and product.farmer == self.request.user
+        return self.request.user.is_farmer and product.seller == self.request.user  # FIXED: Changed from farmer to seller
 
     def delete(self, request, *args, **kwargs):
         product = self.get_object()
@@ -249,7 +255,8 @@ def farmer_products(request):
         messages.error(request, "Only farmers can access this page.")
         return redirect('home')
 
-    products = Product.objects.filter(farmer=request.user).order_by('-created_at')
+    products = Product.objects.filter(seller=request.user).order_by(
+        '-created_at')  # FIXED: Changed from farmer to seller
 
     # Get statistics
     total_products = products.count()
@@ -277,7 +284,7 @@ def add_review(request, slug):
     existing_review = ProductReview.objects.filter(product=product, user=request.user).first()
     if existing_review:
         messages.warning(request, "You have already reviewed this product.")
-        return redirect('product_detail', slug=slug)
+        return redirect('products:product_detail', slug=slug)  # FIXED: Added namespace
 
     if request.method == 'POST':
         form = ProductReviewForm(request.POST)
@@ -287,7 +294,7 @@ def add_review(request, slug):
             review.user = request.user
             review.save()
             messages.success(request, "Thank you for your review!")
-            return redirect('product_detail', slug=slug)
+            return redirect('products:product_detail', slug=slug)  # FIXED: Added namespace
     else:
         form = ProductReviewForm()
 
@@ -308,7 +315,7 @@ def update_review(request, slug):
         if form.is_valid():
             form.save()
             messages.success(request, "Your review has been updated!")
-            return redirect('product_detail', slug=slug)
+            return redirect('products:product_detail', slug=slug)  # FIXED: Added namespace
     else:
         form = ProductReviewForm(instance=review)
 
@@ -411,3 +418,27 @@ def product_quick_view(request, slug):
     }
 
     return render(request, 'products/partials/product_quick_view.html', context)
+
+
+# Function-based view for add_product (as backup if Class-based view doesn't work)
+@login_required
+def add_product(request):
+    if not request.user.is_farmer:
+        messages.error(request, "Only farmers can add products.")
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save(commit=False)
+            product.seller = request.user
+            product.save()
+            messages.success(request, "Product added successfully!")
+            return redirect('products:my_products')
+    else:
+        form = ProductForm()
+
+    return render(request, 'products/product_form.html', {
+        'form': form,
+        'title': 'Add Product'
+    })

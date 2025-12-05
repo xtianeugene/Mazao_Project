@@ -29,6 +29,27 @@
         border: 1px solid #ced4da;
         border-radius: 0.25rem;
     }
+    .image-preview {
+        max-width: 200px;
+        max-height: 200px;
+        border: 2px dashed #dee2e6;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    .current-image {
+        max-width: 200px;
+        border-radius: 0.5rem;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+    .form-check-input:checked {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
 </style>
 {% endblock %}
 
@@ -41,15 +62,24 @@
                     <h4 class="mb-0"><i class="fas fa-{% if title == 'Add New Product' %}plus-circle{% else %}edit{% endif %}"></i> {{ title }}</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post" enctype="multipart/form-data" novalidate>
+                    <form method="post" enctype="multipart/form-data" novalidate id="product-form">
                         {% csrf_token %}
+
+                        <!-- Display non-field errors -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0"><i class="fas fa-exclamation-circle"></i> {{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
 
                         <!-- Basic Information Section -->
                         <div class="form-section">
                             <h5><i class="fas fa-info-circle"></i> Basic Information</h5>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Product Name *</label>
+                                    <label class="form-label required-field">Product Name</label>
                                     <input type="text"
                                            name="{{ form.name.name }}"
                                            id="{{ form.name.id_for_label }}"
@@ -64,17 +94,21 @@
                                         {% endfor %}
                                     </div>
                                     {% endif %}
+                                    <small class="form-text text-muted">
+                                        Enter a descriptive name for your product
+                                    </small>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Category *</label>
+                                    <label class="form-label required-field">Category</label>
                                     <select name="{{ form.category.name }}"
                                             id="{{ form.category.id_for_label }}"
                                             class="form-select {% if form.category.errors %}is-invalid{% endif %}"
                                             required>
                                         <option value="">Select Category</option>
-                                        {% for value, label in form.category.field.choices %}
-                                            <option value="{{ value }}" {% if form.category.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
-                                                {{ label }}
+                                        {% for category in form.category.field.queryset %}
+                                            <option value="{{ category.id }}"
+                                                    {% if form.category.value|stringformat:"s" == category.id|stringformat:"s" %}selected{% endif %}>
+                                                {{ category.name }}
                                             </option>
                                         {% endfor %}
                                     </select>
@@ -85,11 +119,14 @@
                                         {% endfor %}
                                     </div>
                                     {% endif %}
+                                    <small class="form-text text-muted">
+                                        Select the most appropriate category
+                                    </small>
                                 </div>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Description *</label>
+                                <label class="form-label required-field">Description</label>
                                 <textarea name="{{ form.description.name }}"
                                           id="{{ form.description.id_for_label }}"
                                           class="form-control {% if form.description.errors %}is-invalid{% endif %}"
@@ -114,7 +151,7 @@
                             <h5><i class="fas fa-tag"></i> Pricing & Quantity</h5>
                             <div class="row">
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label">Price (KES) *</label>
+                                    <label class="form-label required-field">Price (KES)</label>
                                     <input type="number"
                                            name="{{ form.price.name }}"
                                            id="{{ form.price.id_for_label }}"
@@ -122,7 +159,7 @@
                                            value="{{ form.price.value|default:'' }}"
                                            placeholder="0.00"
                                            step="0.01"
-                                           min="0"
+                                           min="0.01"
                                            required>
                                     {% if form.price.errors %}
                                     <div class="invalid-feedback">
@@ -131,16 +168,20 @@
                                         {% endfor %}
                                     </div>
                                     {% endif %}
+                                    <small class="form-text text-muted">
+                                        Price per {{ form.unit.value|default:"unit" }}
+                                    </small>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label">Unit *</label>
+                                    <label class="form-label required-field">Unit</label>
                                     <select name="{{ form.unit.name }}"
                                             id="{{ form.unit.id_for_label }}"
                                             class="form-select {% if form.unit.errors %}is-invalid{% endif %}"
                                             required>
                                         <option value="">Select Unit</option>
                                         {% for value, label in form.unit.field.choices %}
-                                            <option value="{{ value }}" {% if form.unit.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                                            <option value="{{ value }}"
+                                                    {% if form.unit.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
                                                 {{ label }}
                                             </option>
                                         {% endfor %}
@@ -152,16 +193,19 @@
                                         {% endfor %}
                                     </div>
                                     {% endif %}
+                                    <small class="form-text text-muted">
+                                        Measurement unit for this product
+                                    </small>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label">Quantity Available *</label>
+                                    <label class="form-label required-field">Quantity Available</label>
                                     <input type="number"
-                                           name="{{ form.quantity.name }}"  <!-- Changed from quantity_available to quantity -->
+                                           name="{{ form.quantity.name }}"
                                            id="{{ form.quantity.id_for_label }}"
                                            class="form-control {% if form.quantity.errors %}is-invalid{% endif %}"
-                                           value="{{ form.quantity.value|default:'' }}"
+                                           value="{{ form.quantity.value|default:'1' }}"
                                            placeholder="0"
-                                           min="1"
+                                           min="0"
                                            required>
                                     {% if form.quantity.errors %}
                                     <div class="invalid-feedback">
@@ -170,6 +214,9 @@
                                         {% endfor %}
                                     </div>
                                     {% endif %}
+                                    <small class="form-text text-muted">
+                                        Current stock quantity
+                                    </small>
                                 </div>
                             </div>
 
@@ -183,9 +230,6 @@
                                            value="{{ form.min_order_quantity.value|default:'1' }}"
                                            placeholder="1"
                                            min="1">
-                                    <small class="form-text text-muted">
-                                        Minimum quantity a buyer must order (default: 1)
-                                    </small>
                                     {% if form.min_order_quantity.errors %}
                                     <div class="invalid-feedback">
                                         {% for error in form.min_order_quantity.errors %}
@@ -193,26 +237,9 @@
                                         {% endfor %}
                                     </div>
                                     {% endif %}
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Maximum Order Quantity</label>
-                                    <input type="number"
-                                           name="{{ form.max_order_quantity.name }}"
-                                           id="{{ form.max_order_quantity.id_for_label }}"
-                                           class="form-control {% if form.max_order_quantity.errors %}is-invalid{% endif %}"
-                                           value="{{ form.max_order_quantity.value|default:'' }}"
-                                           placeholder="Leave blank for no limit"
-                                           min="1">
                                     <small class="form-text text-muted">
-                                        Leave blank for no maximum limit
+                                        Minimum quantity a buyer must order
                                     </small>
-                                    {% if form.max_order_quantity.errors %}
-                                    <div class="invalid-feedback">
-                                        {% for error in form.max_order_quantity.errors %}
-                                            {{ error }}
-                                        {% endfor %}
-                                    </div>
-                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -222,28 +249,34 @@
                             <h5><i class="fas fa-clipboard-check"></i> Product Details</h5>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <div class="form-check">
+                                    <div class="form-check form-switch">
                                         <input type="checkbox"
                                                name="{{ form.is_organic.name }}"
                                                id="{{ form.is_organic.id_for_label }}"
                                                class="form-check-input"
                                                {% if form.is_organic.value %}checked{% endif %}>
                                         <label class="form-check-label" for="{{ form.is_organic.id_for_label }}">
-                                            Organic Product
+                                            <i class="fas fa-leaf text-success"></i> Organic Product
                                         </label>
                                     </div>
+                                    <small class="form-text text-muted">
+                                        Check if product is organically grown
+                                    </small>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <div class="form-check">
+                                    <div class="form-check form-switch">
                                         <input type="checkbox"
                                                name="{{ form.is_fresh.name }}"
                                                id="{{ form.is_fresh.id_for_label }}"
                                                class="form-check-input"
                                                {% if form.is_fresh.value %}checked{% endif %}>
                                         <label class="form-check-label" for="{{ form.is_fresh.id_for_label }}">
-                                            Fresh Product
+                                            <i class="fas fa-snowflake text-info"></i> Fresh Product
                                         </label>
                                     </div>
+                                    <small class="form-text text-muted">
+                                        Check if product is fresh/harvested recently
+                                    </small>
                                 </div>
                             </div>
 
@@ -262,6 +295,9 @@
                                         {% endfor %}
                                     </div>
                                     {% endif %}
+                                    <small class="form-text text-muted">
+                                        Date when product becomes available (optional)
+                                    </small>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label">Available Until</label>
@@ -277,6 +313,9 @@
                                         {% endfor %}
                                     </div>
                                     {% endif %}
+                                    <small class="form-text text-muted">
+                                        Date when product availability ends (optional)
+                                    </small>
                                 </div>
                             </div>
                         </div>
@@ -293,9 +332,6 @@
                                            class="form-control {% if form.location.errors %}is-invalid{% endif %}"
                                            value="{{ form.location.value|default:'' }}"
                                            placeholder="Specific location/village">
-                                    <small class="form-text text-muted">
-                                        Specific location where product is available
-                                    </small>
                                     {% if form.location.errors %}
                                     <div class="invalid-feedback">
                                         {% for error in form.location.errors %}
@@ -303,18 +339,24 @@
                                         {% endfor %}
                                     </div>
                                     {% endif %}
+                                    <small class="form-text text-muted">
+                                        Specific location where product is available
+                                    </small>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">County *</label>
+                                    <label class="form-label required-field">County</label>
                                     <select name="{{ form.county.name }}"
                                             id="{{ form.county.id_for_label }}"
                                             class="form-select {% if form.county.errors %}is-invalid{% endif %}"
                                             required>
                                         <option value="">Select County</option>
                                         {% for value, label in form.county.field.choices %}
-                                            <option value="{{ value }}" {% if form.county.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                                            {% if value %}  <!-- Skip empty value -->
+                                            <option value="{{ value }}"
+                                                    {% if form.county.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
                                                 {{ label }}
                                             </option>
+                                            {% endif %}
                                         {% endfor %}
                                     </select>
                                     {% if form.county.errors %}
@@ -324,6 +366,9 @@
                                         {% endfor %}
                                     </div>
                                     {% endif %}
+                                    <small class="form-text text-muted">
+                                        Select the county where product is located
+                                    </small>
                                 </div>
                             </div>
                         </div>
@@ -333,14 +378,28 @@
                             <h5><i class="fas fa-images"></i> Product Image</h5>
                             <div class="mb-3">
                                 <label class="form-label">Product Image</label>
+
+                                {% if object and object.image %}
+                                <div class="mb-3">
+                                    <p class="text-muted">Current Image:</p>
+                                    <img src="{{ object.image.url }}"
+                                         alt="{{ object.name }}"
+                                         class="current-image mb-2">
+                                    <br>
+                                    <small class="text-muted">
+                                        Upload a new image to replace the current one
+                                    </small>
+                                </div>
+                                {% endif %}
+
                                 <input type="file"
                                        name="{{ form.image.name }}"
                                        id="{{ form.image.id_for_label }}"
                                        class="form-control {% if form.image.errors %}is-invalid{% endif %}"
-                                       accept="image/*">
-                                <small class="form-text text-muted">
-                                    Upload a clear image of your product (JPEG, PNG, etc.)
-                                </small>
+                                       accept="image/*"
+                                       onchange="previewImage(event)">
+                                <div id="imagePreview" class="mt-2"></div>
+
                                 {% if form.image.errors %}
                                 <div class="invalid-feedback">
                                     {% for error in form.image.errors %}
@@ -348,6 +407,10 @@
                                     {% endfor %}
                                 </div>
                                 {% endif %}
+
+                                <small class="form-text text-muted">
+                                    Upload a clear image of your product (JPEG, PNG, WebP, max 5MB)
+                                </small>
                             </div>
                         </div>
 
@@ -356,14 +419,15 @@
                             <h5><i class="fas fa-cog"></i> Status & Visibility</h5>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Status *</label>
+                                    <label class="form-label required-field">Status</label>
                                     <select name="{{ form.status.name }}"
                                             id="{{ form.status.id_for_label }}"
                                             class="form-select {% if form.status.errors %}is-invalid{% endif %}"
                                             required>
                                         <option value="">Select Status</option>
                                         {% for value, label in form.status.field.choices %}
-                                            <option value="{{ value }}" {% if form.status.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                                            <option value="{{ value }}"
+                                                    {% if form.status.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
                                                 {{ label }}
                                             </option>
                                         {% endfor %}
@@ -375,16 +439,19 @@
                                         {% endfor %}
                                     </div>
                                     {% endif %}
+                                    <small class="form-text text-muted">
+                                        Set product availability status
+                                    </small>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <div class="form-check mt-4">
+                                    <div class="form-check form-switch mt-4">
                                         <input type="checkbox"
                                                name="{{ form.featured.name }}"
                                                id="{{ form.featured.id_for_label }}"
                                                class="form-check-input"
                                                {% if form.featured.value %}checked{% endif %}>
                                         <label class="form-check-label" for="{{ form.featured.id_for_label }}">
-                                            Feature this product
+                                            <i class="fas fa-star text-warning"></i> Feature this product
                                         </label>
                                         <small class="form-text text-muted d-block">
                                             Featured products appear in highlighted sections
@@ -394,14 +461,31 @@
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-save"></i> Save Product
-                            </button>
-                            <a href="{% if object %}{% url 'product_detail' object.slug %}{% else %}{% url 'farmer_products' %}{% endif %}"
-                               class="btn btn-outline-secondary">
-                                Cancel
-                            </a>
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div>
+                                <a href="{% if object %}{% url 'products:product_detail' object.slug %}{% else %}{% url 'products:my_products' %}{% endif %}"
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                            <div class="d-grid gap-2 d-md-block">
+                                {% if object %}
+                                <!-- For edit view -->
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Update Product
+                                </button>
+                                <a href="{% url 'products:delete_product' object.slug %}"
+                                   class="btn btn-outline-danger"
+                                   onclick="return confirm('Are you sure you want to delete this product? This action cannot be undone.');">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                                {% else %}
+                                <!-- For create view -->
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-plus-circle"></i> Create Product
+                                </button>
+                                {% endif %}
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -409,4 +493,184 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Image preview function
+    function previewImage(event) {
+        const input = event.target;
+        const preview = document.getElementById('imagePreview');
+
+        preview.innerHTML = '';
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'image-preview';
+                img.alt = 'Image preview';
+                preview.appendChild(img);
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Form validation
+    document.getElementById('product-form').addEventListener('submit', function(e) {
+        const requiredFields = this.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+
+                // Create or show error message
+                let errorDiv = field.nextElementSibling;
+                if (!errorDiv || !errorDiv.classList.contains('invalid-feedback')) {
+                    errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback';
+                    errorDiv.textContent = 'This field is required.';
+                    field.parentNode.insertBefore(errorDiv, field.nextSibling);
+                }
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        // Validate price
+        const priceInput = document.getElementById('{{ form.price.id_for_label }}');
+        if (priceInput && parseFloat(priceInput.value) <= 0) {
+            isValid = false;
+            priceInput.classList.add('is-invalid');
+            if (!priceInput.nextElementSibling.classList.contains('invalid-feedback')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.textContent = 'Price must be greater than 0.';
+                priceInput.parentNode.insertBefore(errorDiv, priceInput.nextSibling);
+            }
+        }
+
+        // Validate quantity
+        const quantityInput = document.getElementById('{{ form.quantity.id_for_label }}');
+        if (quantityInput && parseInt(quantityInput.value) < 0) {
+            isValid = false;
+            quantityInput.classList.add('is-invalid');
+            if (!quantityInput.nextElementSibling.classList.contains('invalid-feedback')) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'invalid-feedback';
+                errorDiv.textContent = 'Quantity cannot be negative.';
+                quantityInput.parentNode.insertBefore(errorDiv, quantityInput.nextSibling);
+            }
+        }
+
+        // Validate available dates
+        const fromDate = document.getElementById('{{ form.available_from.id_for_label }}');
+        const untilDate = document.getElementById('{{ form.available_until.id_for_label }}');
+
+        if (fromDate.value && untilDate.value) {
+            const from = new Date(fromDate.value);
+            const until = new Date(untilDate.value);
+
+            if (from > until) {
+                isValid = false;
+                untilDate.classList.add('is-invalid');
+                if (!untilDate.nextElementSibling.classList.contains('invalid-feedback')) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'invalid-feedback';
+                    errorDiv.textContent = 'Available until date must be after available from date.';
+                    untilDate.parentNode.insertBefore(errorDiv, untilDate.nextSibling);
+                }
+            }
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            // Scroll to first error
+            const firstError = document.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+
+            // Show alert
+            showToast('Please fix the errors in the form before submitting.', 'error');
+        }
+    });
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+
+        let container = document.querySelector('.toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            document.body.appendChild(container);
+        }
+
+        container.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+
+        toast.addEventListener('hidden.bs.toast', function () {
+            toast.remove();
+        });
+    }
+
+    // Auto-generate slug from name (optional)
+    document.getElementById('{{ form.name.id_for_label }}').addEventListener('input', function(e) {
+        // This could be used to auto-generate a slug
+        // Implement if needed
+    });
+
+    // Set default available dates if not set
+    window.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+
+        const availableFrom = document.getElementById('{{ form.available_from.id_for_label }}');
+        const availableUntil = document.getElementById('{{ form.available_until.id_for_label }}');
+
+        if (availableFrom && !availableFrom.value && !availableFrom.hasAttribute('data-filled')) {
+            availableFrom.value = today;
+            availableFrom.setAttribute('data-filled', 'true');
+        }
+
+        if (availableUntil && !availableUntil.value && !availableUntil.hasAttribute('data-filled')) {
+            const futureDate = new Date();
+            futureDate.setMonth(futureDate.getMonth() + 1);
+            availableUntil.value = futureDate.toISOString().split('T')[0];
+            availableUntil.setAttribute('data-filled', 'true');
+        }
+
+        // Show current image preview if editing
+        {% if object and object.image %}
+        const preview = document.getElementById('imagePreview');
+        if (preview) {
+            const img = document.createElement('img');
+            img.src = "{{ object.image.url }}";
+            img.className = 'image-preview';
+            img.alt = '{{ object.name }}';
+            preview.appendChild(img);
+        }
+        {% endif %}
+    });
+</script>
 {% endblock %}

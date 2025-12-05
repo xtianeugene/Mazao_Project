@@ -103,6 +103,8 @@ class Profile(models.Model):
     bio = models.TextField(max_length=500, blank=True)
     profile_picture = models.ImageField(upload_to=profile_picture_path, blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
 
     # Farmer-specific fields
     farm_name = models.CharField(max_length=255, blank=True, null=True)
@@ -120,6 +122,21 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"Profile of {self.user.email}"
+
+    @property
+    def address(self):
+        """Get address from available fields"""
+        # Try different field names
+        if hasattr(self, 'location') and self.location:
+            return self.location
+        elif hasattr(self, 'county') and self.county:
+            return self.county
+        elif hasattr(self, 'shipping_address') and self.shipping_address:
+            return self.shipping_address
+        elif hasattr(self, 'physical_address') and self.physical_address:
+            return self.physical_address
+        else:
+            return ''
 
     @property
     def is_complete(self):

@@ -29,7 +29,6 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    # Define the choices classes FIRST, before using them
     class ProductStatus(models.TextChoices):
         ACTIVE = 'active', 'Active'
         OUT_OF_STOCK = 'out_of_stock', 'Out of Stock'
@@ -154,6 +153,31 @@ class Product(models.Model):
     def increment_views(self):
         self.views += 1
         self.save(update_fields=['views'])
+
+    @property
+    def is_available(self):
+        """Check if product is available for purchase."""
+        # Check if product is active
+        if self.status != self.ProductStatus.ACTIVE:
+            return False
+
+        # Check if quantity is available
+        if self.quantity <= 0:
+            return False
+
+        # Check if within available dates (if specified)
+        if self.available_from and self.available_from > date.today():
+            return False
+
+        if self.available_until and self.available_until < date.today():
+            return False
+
+        return True
+
+    @property
+    def quantity_available(self):
+        """Get available quantity."""
+        return self.quantity if self.is_available else 0
 
 
 class ProductReview(models.Model):
