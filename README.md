@@ -12,7 +12,9 @@ Mazao is a web application that allows farmers to list their agricultural produc
 The project is built on the Django framework and is designed to bring significant impact to the following Sustainable Development Goals (SDGs):
 
 SDG 1: No Poverty
+
 SDG 2: Zero Hunger
+
 SDG 8: Decent Work and Economic Growth
 
 🚀 Features
@@ -272,4 +274,5 @@ Review Daraja API documentation
 Open a GitHub issue with details
 
 Include error logs and steps to reproduce
+
 
