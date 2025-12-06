@@ -1,0 +1,125 @@
+<!-- templates/mpesa/payment_status.html -->
+{% extends 'base.html' %}
+
+{% block title %}Payment Status - Mazao{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>Payment Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if transaction %}
+                        <div class="text-center mb-4">
+                            {% if transaction.status == 'SUCCESS' %}
+                                <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                                <h3 class="text-success">Payment Successful!</h3>
+                            {% elif transaction.status == 'PENDING' %}
+                                <i class="fas fa-clock fa-4x text-warning mb-3"></i>
+                                <h3 class="text-warning">Payment Pending</h3>
+                            {% elif transaction.status == 'FAILED' %}
+                                <i class="fas fa-times-circle fa-4x text-danger mb-3"></i>
+                                <h3 class="text-danger">Payment Failed</h3>
+                            {% endif %}
+                        </div>
+
+                        <div class="payment-details">
+                            <table class="table">
+                                <tr>
+                                    <th>Transaction ID:</th>
+                                    <td>{{ transaction.transaction_ref }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Amount:</th>
+                                    <td>KES {{ transaction.amount }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Phone Number:</th>
+                                    <td>{{ transaction.phone_number }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        <span class="badge bg-{% if transaction.status == 'SUCCESS' %}success{% elif transaction.status == 'PENDING' %}warning{% else %}danger{% endif %}">
+                                            {{ transaction.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% if transaction.mpesa_receipt %}
+                                <tr>
+                                    <th>M-Pesa Receipt:</th>
+                                    <td>{{ transaction.mpesa_receipt }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if transaction.result_desc %}
+                                <tr>
+                                    <th>Description:</th>
+                                    <td>{{ transaction.result_desc }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+
+                        {% if transaction.status == 'SUCCESS' and transaction.order %}
+                            <div class="alert alert-success mt-4">
+                                <i class="fas fa-shopping-bag me-2"></i>
+                                Your order has been created!
+                                <a href="{% url 'orders:order_detail' order_id=transaction.order.id %}" class="alert-link">
+                                    View Order #{{ transaction.order.id }}
+                                </a>
+                            </div>
+                        {% endif %}
+
+                        {% if transaction.status == 'PENDING' %}
+                            <div class="alert alert-info mt-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Please check your phone and enter your M-Pesa PIN to complete the payment.
+                                <div class="mt-2">
+                                    <button onclick="checkPaymentStatus()" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-sync-alt me-1"></i> Check Status
+                                    </button>
+                                </div>
+                            </div>
+
+                            <script>
+                            function checkPaymentStatus() {
+                                fetch(`/mpesa/check-status/{{ checkout_request_id }}/`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.ResultCode == 0) {
+                                            location.reload();
+                                        } else {
+                                            alert('Payment still pending or failed');
+                                        }
+                                    });
+                            }
+                            </script>
+                        {% endif %}
+
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                            <h4>Transaction Not Found</h4>
+                            <p class="text-muted">The payment transaction could not be found.</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="mt-4 text-center">
+                        <a href="{% url 'mpesa:payment_history' %}" class="btn btn-secondary">
+                            <i class="fas fa-history me-1"></i> Payment History
+                        </a>
+                        <a href="{% url 'mpesa:index' %}" class="btn btn-primary">
+                            <i class="fas fa-home me-1"></i> Back to Payments
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

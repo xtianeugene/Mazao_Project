@@ -46,9 +46,9 @@ class MpesaTransaction(models.Model):
 
     # Transaction References
     transaction_ref = models.CharField(max_length=50, unique=True, blank=True)
-    checkout_request_id = models.CharField(max_length=100, blank=True, unique=True)
-    merchant_request_id = models.CharField(max_length=100, blank=True, unique=True)
-    mpesa_receipt = models.CharField(max_length=50, blank=True, null=True, unique=True)
+    checkout_request_id = models.CharField(max_length=100, blank=True)
+    merchant_request_id = models.CharField(max_length=100, blank=True, null=True)
+    mpesa_receipt = models.CharField(max_length=50, blank=True, null=True)
 
     # Status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
@@ -122,7 +122,7 @@ class Payment(models.Model):
     delivery_address = models.TextField(blank=True, null=True)
     delivery_instructions = models.TextField(blank=True, null=True)
     delivery_method = models.CharField(max_length=50, blank=True, null=True)
-    cart = models.ForeignKey('cart.Cart', on_delete=models.SET_NULL, null=True, blank=True,related_name='payments')
+    cart = models.ForeignKey('cart.Cart', on_delete=models.SET_NULL, null=True, blank=True, related_name='payments')
 
     # Payment Details
     phone_number = models.CharField(max_length=15)
@@ -401,38 +401,3 @@ class PaymentConfig(models.Model):
     def query_url(self):
         """Get query URL"""
         return f"{self.base_url}/mpesa/stkpushquery/v1/query"
-
-
-# Add a signal to create wallet for new users
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-
-@receiver(post_save, sender=CustomUser)
-def create_user_wallet(sender, instance, created, **kwargs):
-    """Create a wallet for new users"""
-    if created:
-        Wallet.objects.create(user=instance)
-
-
-# Add a signal to create payment record when M-Pesa transaction is successful
-@receiver(post_save, sender=MpesaTransaction)
-def create_payment_from_mpesa(sender, instance, created, **kwargs):
-    """Create a Payment record when M-Pesa transaction is successful"""
-    if instance.is_successful and not hasattr(instance, 'payment_record'):
-        Payment.objects.create(
-            user=instance.user,
-            amount=instance.amount,
-            phone_number=instance.phone_number,
-            transaction_type=TransactionType.PAYMENT,
-            description=f"M-Pesa Payment - {instance.transaction_ref}",
-            mpesa_receipt_number=instance.mpesa_receipt,
-            checkout_request_id=instance.checkout_request_id,
-            merchant_request_id=instance.merchant_request_id,
-            mpesa_transaction=instance,
-            status=PaymentStatus.SUCCESSFUL,
-            is_complete=True,
-            result_code=0,
-            result_description=instance.result_desc,
-            completed_at=instance.completed_at
-        )

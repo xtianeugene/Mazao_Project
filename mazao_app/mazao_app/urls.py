@@ -21,17 +21,19 @@ from django.conf import settings
 from django.conf.urls.static import static
 from core.views import HomeView, register_view, about_view
 from payments import views as payment_views
+from mpesa import views as mpesa_views
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
     path('about/', about_view, name='about'),
     path('products/', include('products.urls')),
-    path('cart/', include('cart.urls', namespace='cart')),
+    path('cart/', include('cart.urls')),
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
     path('payments/', include('payments.urls')),
     path('orders/', include('orders.urls')),
-    path('mpesa-payment/', payment_views.initiate_mpesa_payment, name='mpesa_payment'),
+    path('mpesa/', include('mpesa.urls')),
+    #path('mpesa-payment/', payment_views.initiate_mpesa_payment, name='mpesa_payment'),
 
 # Custom Authentication URLs
     path('users/login/', auth_views.LoginView.as_view(

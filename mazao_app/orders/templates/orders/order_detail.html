@@ -1,0 +1,262 @@
+<!-- orders/templates/orders/order_detail.html -->
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.id }} - Mazao{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .order-timeline::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+    .timeline-step {
+        position: relative;
+        margin-bottom: 30px;
+    }
+    .timeline-step::before {
+        content: '';
+        position: absolute;
+        left: -30px;
+        top: 0;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: white;
+        border: 3px solid #dee2e6;
+    }
+    .timeline-step.active::before {
+        background: #28a745;
+        border-color: #28a745;
+    }
+    .timeline-step.completed::before {
+        background: #28a745;
+        border-color: #28a745;
+    }
+    .product-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Order Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Order #{{ order.id|stringformat:"06d"|slice:":6" }}</h1>
+                    <p class="text-muted mb-0">
+                        Placed on {{ order.created_at|date:"F d, Y" }} at {{ order.created_at|time }}
+                    </p>
+                </div>
+                <div class="text-end">
+                    <span class="status-badge
+    {% if order.order_status == 'completed' %}bg-success
+    {% elif order.order_status == 'processing' %}bg-primary
+    {% elif order.order_status == 'pending' %}bg-warning
+    {% else %}bg-danger{% endif %} text-white">
+    {{ order.get_status_display }}
+</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Order Details -->
+        <div class="col-lg-8">
+            <!-- Order Timeline -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-stream me-2"></i>Order Progress</h6>
+                </div>
+                <div class="card-body">
+                    <div class="order-timeline">
+                        <div class="timeline-step {% if order.order_status != 'cancelled' %}active{% endif %}">
+                            <h6 class="mb-1">Order Placed</h6>
+                            <p class="text-muted mb-0">Your order has been received</p>
+                            <small class="text-muted">{{ order.created_at|date:"M d, h:i A" }}</small>
+                        </div>
+
+                        <div class="timeline-step {% if order.order_status == 'processing' or order.status == 'completed' %}active{% endif %}">
+                            <h6 class="mb-1">Order Confirmed</h6>
+                            <p class="text-muted mb-0">Seller has confirmed your order</p>
+                            {% if order.status == 'processing' or order.status == 'completed' %}
+                            <small class="text-muted">{{ order.updated_at|date:"M d, h:i A" }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="timeline-step {% if order.order_status == 'completed' %}active{% endif %}">
+                            <h6 class="mb-1">Order Delivered</h6>
+                            <p class="text-muted mb-0">Your order has been delivered</p>
+                            {% if order.status == 'completed' %}
+                            <small class="text-muted">Completed</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-boxes me-2"></i>Order Items</h6>
+                </div>
+                <div class="card-body">
+                    {% for item in order_items %}
+                    <div class="row mb-4 pb-4 border-bottom {% if not forloop.last %}border-bottom{% endif %}">
+                        <div class="col-md-2">
+                            {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}"
+                                 alt="{{ item.product.name }}"
+                                 class="product-img img-fluid">
+                            {% else %}
+                            <div class="product-img bg-light d-flex align-items-center justify-content-center">
+                                <i class="fas fa-image fa-2x text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-1">{{ item.product.name }}</h6>
+                            <p class="text-muted mb-1">
+                                Seller: {{ item.product.seller.get_full_name }}
+                            </p>
+                            <small class="text-muted">
+                                Quantity: {{ item.quantity }} {{ item.product.get_unit_display }}
+                            </small>
+                            {% if item.special_instructions %}
+                            <div class="mt-2">
+                                <small><strong>Instructions:</strong> {{ item.special_instructions }}</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <h6 class="text-success">KES {{ item.price|floatformat:2 }}</h6>
+                            <p class="text-muted mb-0">KES {{ item.get_total|floatformat:2 }} total</p>
+                            <small class="text-muted">
+                                Delivery: {{ item.get_delivery_method_display }}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow sticky-top" style="top: 1rem;">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Order Summary</h6>
+                </div>
+                <div class="card-body">
+                    <!-- Payment Information -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Payment Information</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Payment Method:</span>
+                            <strong>{{ order.get_payment_method_display }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Payment Status:</span>
+                            <span class="badge bg-{% if order.payment_status == 'completed' %}success{% else %}warning{% endif %}">
+                                {{ order.get_payment_status_display }}
+                            </span>
+                        </div>
+                        {% if order.mpesa_receipt %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">M-Pesa Receipt:</span>
+                            <strong>{{ order.mpesa_receipt }}</strong>
+                        </div>
+                        {% endif %}
+                        {% if order.mpesa_phone %}
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Phone:</span>
+                            <strong>{{ order.mpesa_phone }}</strong>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Delivery Information -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Delivery Information</h6>
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Delivery Method:</small>
+                            <strong>{{ order.get_delivery_method_display }}</strong>
+                        </div>
+                        {% if order.delivery_address %}
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Address:</small>
+                            <strong>{{ order.delivery_address }}</strong>
+                        </div>
+                        {% endif %}
+                        {% if order.delivery_instructions %}
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Instructions:</small>
+                            <strong>{{ order.delivery_instructions }}</strong>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Order Totals -->
+                    <div class="border-top pt-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <span>KES {{ order.total_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Delivery Fee:</span>
+                            <span>KES 0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Tax:</span>
+                            <span>KES 0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-top pt-2">
+                            <strong>Total:</strong>
+                            <strong class="text-success">KES {{ order.total_amount|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4">
+                        {% if order.order_status == 'pending' %}
+                        <button class="btn btn-danger w-100 mb-2">
+                            <i class="fas fa-times me-1"></i> Cancel Order
+                        </button>
+                        {% endif %}
+
+                        {% if order.order_status == 'processing' %}
+                        <button class="btn btn-primary w-100 mb-2">
+                            <i class="fas fa-map-marker-alt me-1"></i> Track Order
+                        </button>
+                        {% endif %}
+
+                        <a href="{% url 'orders:my_orders' %}" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Orders
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

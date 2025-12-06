@@ -17,8 +17,13 @@ Mazao_Project/
 │   │   │   └── __init__.py
 │   │   ├── templates/
 │   │   │   ├── cart/
+│   │   │       ├── bank_transfer.html
 │   │   │       ├── cart.html
-│   │   │       └── checkout.html
+│   │   │       ├── checkout.html
+│   │   │       ├── mpesa_payment.html
+│   │   │       ├── order_confirmation.html
+│   │   │       ├── payment_processing.html
+│   │   │       └── payment_success.html
 │   │   ├── __init__.py
 │   │   ├── admin.py
 │   │   ├── apps.py
@@ -76,6 +81,32 @@ Mazao_Project/
 │   │       │   └── profile_2_2025-12-04.jpg
 │   │       ├── user_3/
 │   │           └── profile_3_2025-12-05.webp
+│   ├── mpesa/
+│   │   ├── __pycache__/
+│   │   │   ├── __init__.cpython-314.pyc
+│   │   │   ├── admin.cpython-314.pyc
+│   │   │   ├── apps.cpython-314.pyc
+│   │   │   ├── models.cpython-314.pyc
+│   │   │   ├── urls.cpython-314.pyc
+│   │   │   └── views.cpython-314.pyc
+│   │   ├── migrations/
+│   │   │   ├── __pycache__/
+│   │   │   │   └── __init__.cpython-314.pyc
+│   │   │   └── __init__.py
+│   │   ├── templates/
+│   │   │   ├── mpesa/
+│   │   │       ├── index.html
+│   │   │       ├── payment_status.html
+│   │   │       ├── pending.html
+│   │   │       ├── processing.html
+│   │   │       └── stk_form.html
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── models.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
 │   ├── orders/
 │   │   ├── __pycache__/
 │   │   │   ├── __init__.cpython-314.pyc
@@ -87,8 +118,10 @@ Mazao_Project/
 │   │   ├── migrations/
 │   │   │   ├── __pycache__/
 │   │   │   │   ├── 0001_initial.cpython-314.pyc
+│   │   │   │   ├── 0002_rename_buyer_order_user_remove_order_product_and_more.cpython-314.pyc
 │   │   │   │   └── __init__.cpython-314.pyc
 │   │   │   ├── 0001_initial.py
+│   │   │   ├── 0002_rename_buyer_order_user_remove_order_product_and_more.py
 │   │   │   └── __init__.py
 │   │   ├── templates/
 │   │   │   ├── orders/
@@ -122,15 +155,22 @@ Mazao_Project/
 │   │   ├── migrations/
 │   │   │   ├── __pycache__/
 │   │   │   │   ├── 0001_initial.cpython-314.pyc
+│   │   │   │   ├── 0002_transaction_order_mpesatransaction_and_more.cpython-314.pyc
+│   │   │   │   ├── 0003_payment_cart_payment_delivery_address_and_more.cpython-314.pyc
+│   │   │   │   ├── 0004_alter_mpesatransaction_merchant_request_id.cpython-314.pyc
+│   │   │   │   ├── 0005_alter_mpesatransaction_checkout_request_id_and_more.cpython-314.pyc
 │   │   │   │   └── __init__.cpython-314.pyc
 │   │   │   ├── 0001_initial.py
+│   │   │   ├── 0002_transaction_order_mpesatransaction_and_more.py
+│   │   │   ├── 0003_payment_cart_payment_delivery_address_and_more.py
+│   │   │   ├── 0004_alter_mpesatransaction_merchant_request_id.py
+│   │   │   ├── 0005_alter_mpesatransaction_checkout_request_id_and_more.py
 │   │   │   └── __init__.py
 │   │   ├── templates/
 │   │   │   ├── payments/
 │   │   │       ├── cart_payment_processing.html
-│   │   │       ├── checkout.html
-│   │   │       ├── initiate_payment.html
-│   │   │       ├── payment_failed.html
+│   │   │       ├── initiate_mpesa.html
+│   │   │       ├── mpesa_processing.html
 │   │   │       ├── payment_status.html
 │   │   │       ├── payment_success.html
 │   │   │       └── wallet.html
@@ -197,8 +237,10 @@ Mazao_Project/
 │   │   ├── migrations/
 │   │   │   ├── __pycache__/
 │   │   │   │   ├── 0001_initial.cpython-314.pyc
+│   │   │   │   ├── 0002_profile_phone_number.cpython-314.pyc
 │   │   │   │   └── __init__.cpython-314.pyc
 │   │   │   ├── 0001_initial.py
+│   │   │   ├── 0002_profile_phone_number.py
 │   │   │   └── __init__.py
 │   │   ├── templates/
 │   │   │   ├── users/

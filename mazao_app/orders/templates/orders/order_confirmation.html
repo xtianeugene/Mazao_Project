@@ -1,0 +1,71 @@
+<!-- orders/templates/orders/order_confirmation.html -->
+{% extends 'base.html' %}
+
+{% block title %}Order Confirmation - Mazao{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-check-circle fa-4x text-success mb-4"></i>
+                    <h1 class="h2 mb-3">Order Confirmed!</h1>
+                    <p class="lead mb-4">Thank you for your purchase. Your order has been received.</p>
+
+                    <div class="alert alert-success mx-auto" style="max-width: 500px;">
+                        <h5 class="alert-heading">Order Details</h5>
+                        <p class="mb-1"><strong>Order #:</strong> {{ order.id }}</p>
+                        <p class="mb-1"><strong>Total:</strong> KES {{ order.total_amount }}</p>
+                        <p class="mb-1"><strong>Payment:</strong> M-Pesa ({{ order.mpesa_receipt }})</p>
+                        <p class="mb-0"><strong>Status:</strong> {{ order.get_status_display }}</p>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{% url 'orders:my_orders' %}" class="btn btn-primary">
+                            <i class="fas fa-shopping-bag"></i> View My Orders
+                        </a>
+                        <a href="{% url 'products:product_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-store"></i> Continue Shopping
+                        </a>
+                    </div>
+
+                    <div class="mt-5">
+                        <h5>What happens next?</h5>
+                        <div class="row mt-3">
+                            <div class="col-md-3">
+                                <div class="p-3">
+                                    <i class="fas fa-receipt fa-2x text-primary mb-2"></i>
+                                    <h6>Order Confirmed</h6>
+                                    <small class="text-muted">Your order is being processed</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3">
+                                    <i class="fas fa-box fa-2x text-primary mb-2"></i>
+                                    <h6>Preparing Order</h6>
+                                    <small class="text-muted">Seller is preparing your items</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3">
+                                    <i class="fas fa-truck fa-2x text-primary mb-2"></i>
+                                    <h6>On the Way</h6>
+                                    <small class="text-muted">Your order is out for delivery</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="p-3">
+                                    <i class="fas fa-home fa-2x text-primary mb-2"></i>
+                                    <h6>Delivered</h6>
+                                    <small class="text-muted">Enjoy your purchase!</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

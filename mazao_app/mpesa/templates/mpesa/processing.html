@@ -1,0 +1,56 @@
+<!-- mpesa/templates/mpesa/processing.html -->
+{% extends 'base.html' %}
+
+{% block title %}Payment Processing - Mazao{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-mobile-alt me-2"></i>
+                        M-Pesa Payment Processing
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="spinner-border text-success mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+
+                    <h4 class="mb-3">Check Your Phone</h4>
+                    <p class="text-muted">
+                        We've sent an M-Pesa prompt to <strong>{{ phone }}</strong>.
+                        Please enter your PIN to complete the payment of
+                        <strong>KES {{ amount }}</strong>.
+                    </p>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        If you don't receive the prompt within 30 seconds,
+                        please try again or contact support.
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{% url 'orders:my_orders' %}" class="btn btn-success me-2">
+                            <i class="fas fa-shopping-bag"></i> View Orders
+                        </a>
+                        <a href="{% url 'cart:checkout' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-redo"></i> Try Again
+                        </a>
+                    </div>
+
+                    {% if checkout_id %}
+                    <div class="mt-4 text-start">
+                        <small class="text-muted">
+                            Transaction ID: <code>{{ checkout_id }}</code>
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

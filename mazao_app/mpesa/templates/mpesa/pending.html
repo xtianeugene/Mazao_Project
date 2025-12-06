@@ -1,0 +1,30 @@
+<!-- templates/mpesa/pending.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Pending</title>
+</head>
+<body>
+    <h1>Payment Initiated Successfully!</h1>
+
+    <p>Check your phone to complete the M-Pesa payment.</p>
+
+    <p><strong>Amount:</strong> KES {{ amount }}</p>
+    <p><strong>Phone:</strong> {{ phone }}</p>
+
+    {% if checkout_id %}
+        <p><strong>Transaction ID:</strong> {{ checkout_id }}</p>
+    {% endif %}
+
+    <p>You will be redirected automatically when payment is confirmed...</p>
+
+    <script>
+        // Auto-refresh after 10 seconds to check status
+        setTimeout(function() {
+            window.location.reload();
+        }, 10000);
+    </script>
+
+    <a href="{% url 'mpesa:index' %}">Back to Home</a>
+</body>
+</html>

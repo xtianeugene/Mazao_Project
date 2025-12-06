@@ -1,3 +1,4 @@
+# payments/apps.py
 from django.apps import AppConfig
 
 
@@ -10,4 +11,5 @@ class PaymentsConfig(AppConfig):
 
 
 
-        import payments.signals
+
+        import payments.signals  # This imports the signals

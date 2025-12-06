@@ -48,6 +48,23 @@
         border-color: #28a745 !important;
         background: rgba(40, 167, 69, 0.05);
     }
+    .mpesa-pending {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+    }
+    .processing-spinner {
+        width: 80px;
+        height: 80px;
+        border-width: 6px;
+    }
+    .payment-status {
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
 </style>
 {% endblock %}
 
@@ -89,9 +106,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="checkout-step" style="flex: 1; margin-left: 1rem;">
+                <div class="checkout-step active" style="flex: 1; margin-left: 1rem;">
                     <div class="d-flex align-items-center">
-                        <span class="step-number">3</span>
+                        <span class="step-number active">3</span>
                         <div>
                             <h6 class="mb-0">Payment</h6>
                             <small class="text-muted">Complete payment</small>
@@ -161,12 +178,14 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="deliveryAddress" class="form-label">Delivery Address *</label>
-                                    <textarea class="form-control" id="deliveryAddress" rows="3" required></textarea>
+                                    <textarea class="form-control" id="deliveryAddress" rows="3" required
+                                              placeholder="Enter your complete address (Street, Building, Town)">{{ user_profile.address|default:'' }}</textarea>
                                     <div class="form-text">Enter your complete delivery address</div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="deliveryInstructions" class="form-label">Special Instructions</label>
-                                    <textarea class="form-control" id="deliveryInstructions" rows="3"></textarea>
+                                    <textarea class="form-control" id="deliveryInstructions" rows="3"
+                                              placeholder="e.g., Call before delivery, Leave at gate, etc."></textarea>
                                     <div class="form-text">Any special delivery instructions</div>
                                 </div>
                             </div>
@@ -231,7 +250,7 @@
                         <h6><i class="fas fa-credit-card me-2"></i>Payment Method</h6>
 
                         <div class="payment-options">
-                            <div class="payment-option card mb-3 border {% if payment_method == 'mpesa' %}selected{% endif %}"
+                            <div class="payment-option card mb-3 border selected"
                                  data-payment="mpesa">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
@@ -240,13 +259,13 @@
                                         </div>
                                         <div>
                                             <h6 class="mb-0">M-Pesa</h6>
-                                            <small class="text-muted">Pay via M-Pesa</small>
+                                            <small class="text-muted">Pay via M-Pesa (Recommended)</small>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="payment-option card mb-3 border {% if payment_method == 'cod' %}selected{% endif %}"
+                            <div class="payment-option card mb-3 border"
                                  data-payment="cod">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
@@ -261,7 +280,7 @@
                                 </div>
                             </div>
 
-                            <div class="payment-option card mb-3 border {% if payment_method == 'bank' %}selected{% endif %}"
+                            <div class="payment-option card mb-3 border"
                                  data-payment="bank">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
@@ -277,24 +296,42 @@
                             </div>
                         </div>
 
-                        <!-- M-Pesa Payment Form (Hidden by default) -->
-                        <div id="mpesaForm" class="payment-form" style="display: none;">
-                            <form method="post" action="{% url 'payments:initiate_mpesa' %}" id="mpesaPaymentForm">
+                        <!-- M-Pesa Payment Form (Visible by default) -->
+                        <div id="mpesaForm" class="payment-form">
+                            <form method="post" id="mpesaPaymentForm">
                                 {% csrf_token %}
                                 <div class="mb-3">
                                     <label for="mpesaPhone" class="form-label">Phone Number *</label>
-                                    <input type="tel" class="form-control" id="mpesaPhone" name="phone"
-                                           placeholder="07XX XXX XXX" required>
-                                    <div class="form-text">Enter your M-Pesa registered phone number</div>
+                                    <div class="input-group">
+                                        <span class="input-group-text">+254</span>
+                                        <input type="tel" class="form-control" id="mpesaPhone" name="phone"
+                                               placeholder="712345678" required
+                                               value="{% if user_profile.phone %}{{ user_profile.phone }}{% else %}0712759133{% endif %}"
+                                               pattern="[0-9]{10}"
+                                               maxlength="10">
+                                    </div>
+                                    <div class="form-text">Enter your M-Pesa registered phone number (10 digits, e.g., 0712345678)</div>
                                 </div>
-                                <input type="hidden" name="amount" value="{{ cart.total_price }}" id="mpesaAmount">
 
-                                <!-- Hidden fields for delivery info (will be populated by JavaScript) -->
-                                <input type="hidden" id="deliveryAddressInput" name="delivery_address" value="">
-                                <input type="hidden" id="deliveryInstructionsInput" name="delivery_instructions" value="">
-                                <input type="hidden" id="deliveryMethodInput" name="delivery_method" value="">
+                                <!-- Hidden fields -->
+                                <input type="hidden" name="amount" value="{{ cart.total_price|floatformat:2 }}" id="mpesaAmount">
+                                <input type="hidden" name="order_id" value="{{ cart.id }}" id="orderId">
+                                <input type="hidden" name="cart_id" value="{{ cart.id }}" id="cartId">
 
-                                <!-- Button will be handled by JavaScript -->
+                                <!-- Delivery Info -->
+                                <input type="hidden" id="mpesaDeliveryAddress" name="delivery_address" value="">
+                                <input type="hidden" id="mpesaDeliveryInstructions" name="delivery_instructions" value="">
+                                <input type="hidden" id="mpesaDeliveryMethod" name="delivery_method" value="">
+
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    You will receive an M-Pesa prompt on your phone to complete payment.
+                                </div>
+
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle"></i>
+                                    Ready to process payment of <strong>KES {{ cart.total_price|floatformat:2 }}</strong> to your phone.
+                                </div>
                             </form>
                         </div>
 
@@ -306,11 +343,11 @@
                                     <i class="fas fa-info-circle"></i>
                                     You'll pay cash when you receive your order.
                                 </div>
-                                <!-- Hidden fields for delivery info (will be populated by JavaScript) -->
+                                <!-- Hidden fields for delivery info -->
                                 <input type="hidden" id="codDeliveryAddress" name="delivery_address" value="">
                                 <input type="hidden" id="codDeliveryInstructions" name="delivery_instructions" value="">
                                 <input type="hidden" id="codDeliveryMethod" name="delivery_method" value="">
-                                <!-- Button will be handled by JavaScript -->
+                                <input type="hidden" name="cart_id" value="{{ cart.id }}">
                             </form>
                         </div>
 
@@ -323,13 +360,13 @@
                                 <p class="mb-1"><strong>Account No:</strong> 0123456789</p>
                                 <p class="mb-0"><strong>Amount:</strong> KES {{ cart.total_price|floatformat:2 }}</p>
                             </div>
-                            <!-- Hidden fields for delivery info -->
-                            <input type="hidden" id="bankDeliveryAddress" value="">
-                            <input type="hidden" id="bankDeliveryInstructions" value="">
-                            <input type="hidden" id="bankDeliveryMethod" value="">
-                            <a href="{% url 'cart:bank_transfer' %}" class="btn btn-success w-100" id="bankTransferLink">
-                                <i class="fas fa-check-circle"></i> Confirm Bank Transfer
-                            </a>
+                            <form method="post" action="{% url 'cart:bank_transfer' %}" id="bankPaymentForm">
+                                {% csrf_token %}
+                                <input type="hidden" id="bankDeliveryAddress" name="delivery_address" value="">
+                                <input type="hidden" id="bankDeliveryInstructions" name="delivery_instructions" value="">
+                                <input type="hidden" id="bankDeliveryMethod" name="delivery_method" value="">
+                                <input type="hidden" name="cart_id" value="{{ cart.id }}">
+                            </form>
                         </div>
                     </div>
 
@@ -352,6 +389,65 @@
                             Your payment is secure and encrypted
                         </small>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- M-Pesa Processing Modal -->
+<div class="modal fade" id="mpesaProcessingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content mpesa-pending">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white">
+                    <i class="fas fa-mobile-alt me-2"></i>M-Pesa Payment Processing
+                </h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="payment-status">
+                    <div class="spinner-border processing-spinner text-light mb-4" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h4 class="text-white mb-3">Check Your Phone</h4>
+                    <p class="text-light mb-4">We've sent an M-Pesa prompt to your phone. Please enter your PIN to complete the payment.</p>
+
+                    <div class="alert alert-light w-100">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Amount:</span>
+                            <strong id="processingAmount">KES {{ cart.total_price|floatformat:2 }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Phone:</span>
+                            <strong id="processingPhone">0712759133</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paymentSuccess" class="payment-status" style="display: none;">
+                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                    <h4 class="text-white mb-3">Payment Successful!</h4>
+                    <p class="text-light">Your order has been confirmed and is being processed.</p>
+                    <a href="{% url 'orders:my_orders' %}" class="btn btn-light mt-3">
+                        <i class="fas fa-shopping-bag"></i> View Orders
+                    </a>
+                </div>
+
+                <div id="paymentFailed" class="payment-status" style="display: none;">
+                    <i class="fas fa-times-circle fa-4x text-danger mb-3"></i>
+                    <h4 class="text-white mb-3">Payment Failed!</h4>
+                    <p class="text-light mb-4" id="errorMessage">Please try again or use a different payment method.</p>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                        Try Again
+                    </button>
+                </div>
+
+                <div id="paymentProcessing" class="payment-status" style="display: none;">
+                    <div class="spinner-border processing-spinner text-light mb-4" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h4 class="text-white mb-3">Processing Payment...</h4>
+                    <p class="text-light">Please wait while we process your payment.</p>
                 </div>
             </div>
         </div>
@@ -393,6 +489,9 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Get CSRF token
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
     // Payment option selection
     document.querySelectorAll('.payment-option').forEach(option => {
         option.addEventListener('click', function() {
@@ -434,31 +533,88 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Validate phone number
+    // SIMPLIFIED Phone number validation - only checks for 10 digits
     function validatePhoneNumber(phone) {
-        if (!phone || phone.trim().length < 10) {
-            return { valid: false, message: 'Please enter a valid phone number for M-Pesa' };
-        }
-
-        // Format phone number validation
-        const phoneRegex = /^[0-9]{10}$/;
+        // Remove all non-digit characters
         const cleanedPhone = phone.replace(/\D/g, '');
 
-        if (!phoneRegex.test(cleanedPhone)) {
-            return { valid: false, message: 'Please enter a valid 10-digit phone number (e.g., 0712345678)' };
+        // Check if it's exactly 10 digits
+        if (cleanedPhone.length !== 10) {
+            return {
+                valid: false,
+                message: 'Phone number must be 10 digits (e.g., 0712345678)'
+            };
         }
 
-        return { valid: true, phone: cleanedPhone };
+        // Check if it starts with 07 (Kenyan mobile number format)
+        if (!cleanedPhone.startsWith('07')) {
+            return {
+                valid: false,
+                message: 'Phone number must start with 07 (e.g., 0712345678)'
+            };
+        }
+
+        return {
+            valid: true,
+            phone: cleanedPhone
+        };
+    }
+
+    // Format phone number to 254 format for M-Pesa API
+    function formatPhoneForMpesa(phone) {
+        // Remove all non-digit characters
+        const cleaned = phone.replace(/\D/g, '');
+
+        // Convert from 07XXXXXXXX to 2547XXXXXXXX
+        if (cleaned.length === 10 && cleaned.startsWith('07')) {
+            return '254' + cleaned.substring(1);
+        }
+
+        // If it's already in 254 format, return as is
+        if (cleaned.length === 12 && cleaned.startsWith('254')) {
+            return cleaned;
+        }
+
+        // If it's 9 digits (7XXXXXXXX), add 254
+        if (cleaned.length === 9 && cleaned.startsWith('7')) {
+            return '254' + cleaned;
+        }
+
+        // Return original if we can't format it
+        return phone;
+    }
+
+    // Phone number input formatting (only allows digits, max 10)
+    const phoneInput = document.getElementById('mpesaPhone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            // Remove all non-digit characters
+            let value = e.target.value.replace(/\D/g, '');
+
+            // Limit to 10 digits
+            if (value.length > 10) {
+                value = value.substring(0, 10);
+            }
+
+            // Update the input value
+            e.target.value = value;
+        });
+
+        // Set initial value if empty
+        if (!phoneInput.value) {
+            phoneInput.value = '0712759133'; // Your default phone number
+        }
     }
 
     // Checkout button click
-    document.getElementById('checkoutButton').addEventListener('click', function() {
+    document.getElementById('checkoutButton').addEventListener('click', async function() {
         const paymentMethod = document.querySelector('.payment-option.selected')?.dataset.payment;
         const termsAgreed = document.getElementById('agreeTerms').checked;
         const deliveryAddress = document.getElementById('deliveryAddress').value;
         const deliveryInstructions = document.getElementById('deliveryInstructions').value;
         const deliveryMethod = document.querySelector('input[name="deliveryMethod"]:checked')?.value;
         const mpesaPhone = document.getElementById('mpesaPhone')?.value;
+        const cartTotal = parseFloat("{{ cart.total_price }}");
 
         // Validate inputs
         if (!paymentMethod) {
@@ -473,86 +629,179 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!deliveryAddress || !deliveryAddress.trim()) {
             alert('Please enter your delivery address');
+            document.getElementById('deliveryAddress').focus();
             return;
         }
 
         // Handle different payment methods
         if (paymentMethod === 'mpesa') {
+            // Validate phone number (only 10 digits check)
             const phoneValidation = validatePhoneNumber(mpesaPhone);
             if (!phoneValidation.valid) {
                 alert(phoneValidation.message);
+                document.getElementById('mpesaPhone').focus();
                 return;
             }
 
-            // Populate hidden fields in M-Pesa form
-            document.getElementById('deliveryAddressInput').value = deliveryAddress;
-            document.getElementById('deliveryInstructionsInput').value = deliveryInstructions;
-            document.getElementById('deliveryMethodInput').value = deliveryMethod;
+            // Format phone for M-Pesa API
+            const mpesaFormattedPhone = formatPhoneForMpesa(phoneValidation.phone);
 
-            // Format phone number if needed
-            const phoneInput = document.getElementById('mpesaPhone');
-            if (phoneInput && phoneValidation.phone) {
-                phoneInput.value = phoneValidation.phone;
+            // Populate hidden fields in M-Pesa form
+            document.getElementById('mpesaDeliveryAddress').value = deliveryAddress;
+            document.getElementById('mpesaDeliveryInstructions').value = deliveryInstructions;
+            document.getElementById('mpesaDeliveryMethod').value = deliveryMethod;
+
+            // Update the phone field with formatted version for backend
+            document.getElementById('mpesaPhone').value = mpesaFormattedPhone;
+
+            // Show processing modal
+            document.getElementById('processingAmount').textContent = 'KES ' + cartTotal.toFixed(2);
+            document.getElementById('processingPhone').textContent = phoneValidation.phone; // Show user-friendly format
+
+            const modal = new bootstrap.Modal(document.getElementById('mpesaProcessingModal'));
+            modal.show();
+
+            // Show processing state
+            document.querySelector('.payment-status').style.display = 'none';
+            document.getElementById('paymentProcessing').style.display = 'flex';
+
+            try {
+                // Prepare form data
+                const formData = new FormData();
+                formData.append('csrfmiddlewaretoken', csrftoken);
+                formData.append('phone_number', mpesaFormattedPhone);
+                formData.append('amount', cartTotal.toFixed(2));
+                formData.append('account_reference', 'ORDER_{{ cart.id }}');
+                formData.append('delivery_address', deliveryAddress);
+                formData.append('delivery_instructions', deliveryInstructions);
+                formData.append('delivery_method', deliveryMethod);
+                formData.append('cart_id', '{{ cart.id }}');
+                formData.append('transaction_desc', 'Payment for Mazao order #{{ cart.id }}');
+
+                // FIXED: Use the correct M-Pesa endpoint
+                const response = await fetch('/mpesa/pay/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+
+                // Hide processing spinner
+                document.getElementById('paymentProcessing').style.display = 'none';
+
+                // Check response type
+                const contentType = response.headers.get('content-type');
+
+                if (contentType && contentType.includes('application/json')) {
+                    // Handle JSON response
+                    const responseData = await response.json();
+
+                    if (response.ok && responseData.ResponseCode === '0') {
+                        // Payment initiated successfully
+                        document.getElementById('paymentSuccess').style.display = 'flex';
+
+                        // Store checkout ID for status checking
+                        if (responseData.CheckoutRequestID) {
+                            localStorage.setItem('last_checkout_id', responseData.CheckoutRequestID);
+                        }
+
+                        // Redirect to orders page after 5 seconds
+                        setTimeout(() => {
+                            window.location.href = "{% url 'orders:my_orders' %}";
+                        }, 5000);
+                    } else {
+                        // Payment failed
+                        const errorMsg = responseData.ResponseDescription || responseData.error || 'Payment failed. Please try again.';
+                        document.getElementById('errorMessage').textContent = errorMsg;
+                        document.getElementById('paymentFailed').style.display = 'flex';
+                    }
+                } else {
+                    // Handle non-JSON response (redirect or HTML)
+                    const responseText = await response.text();
+
+                    if (response.ok) {
+                        // If response contains success indicators
+                        if (responseText.includes('success') || responseText.includes('CheckoutRequestID')) {
+                            document.getElementById('paymentSuccess').style.display = 'flex';
+                            setTimeout(() => {
+                                window.location.href = "{% url 'orders:my_orders' %}";
+                            }, 5000);
+                        } else {
+                            // Show original checkout page
+                            modal.hide();
+                            // The backend will redirect to a status page
+                            window.location.href = response.url || '/mpesa/';
+                        }
+                    } else {
+                        // Server error
+                        document.getElementById('errorMessage').textContent = 'Server error. Please try again later.';
+                        document.getElementById('paymentFailed').style.display = 'flex';
+                    }
+                }
+
+            } catch (error) {
+                console.error('Payment error:', error);
+                document.getElementById('paymentProcessing').style.display = 'none';
+                document.getElementById('errorMessage').textContent = 'Network error. Please check your connection and try again.';
+                document.getElementById('paymentFailed').style.display = 'flex';
             }
 
-            // Submit the M-Pesa form
-            document.getElementById('mpesaPaymentForm').submit();
-
         } else if (paymentMethod === 'cod') {
+            // Validate delivery info
+            if (!deliveryAddress.trim()) {
+                alert('Please enter your delivery address for COD');
+                return;
+            }
+
             // Populate hidden fields in COD form
             document.getElementById('codDeliveryAddress').value = deliveryAddress;
             document.getElementById('codDeliveryInstructions').value = deliveryInstructions;
             document.getElementById('codDeliveryMethod').value = deliveryMethod;
 
-            // Submit the COD form
-            document.getElementById('codPaymentForm').submit();
+            // Confirm COD
+            if (confirm('Confirm Cash on Delivery order? You will pay when you receive your items.')) {
+                document.getElementById('codPaymentForm').submit();
+            }
 
         } else if (paymentMethod === 'bank') {
-            // Store delivery info in sessionStorage for bank transfer page
-            sessionStorage.setItem('bankDeliveryAddress', deliveryAddress);
-            sessionStorage.setItem('bankDeliveryInstructions', deliveryInstructions);
-            sessionStorage.setItem('bankDeliveryMethod', deliveryMethod);
+            // Validate delivery info
+            if (!deliveryAddress.trim()) {
+                alert('Please enter your delivery address');
+                return;
+            }
 
-            // Update the bank transfer link to include parameters
-            const bankLink = document.getElementById('bankTransferLink');
-            const currentHref = bankLink.getAttribute('href');
-            const params = new URLSearchParams({
-                address: encodeURIComponent(deliveryAddress),
-                instructions: encodeURIComponent(deliveryInstructions),
-                method: deliveryMethod
-            });
-            bankLink.setAttribute('href', currentHref + '?' + params.toString());
+            // Populate hidden fields in Bank form
+            document.getElementById('bankDeliveryAddress').value = deliveryAddress;
+            document.getElementById('bankDeliveryInstructions').value = deliveryInstructions;
+            document.getElementById('bankDeliveryMethod').value = deliveryMethod;
 
-            // Navigate to bank transfer page
-            window.location.href = bankLink.getAttribute('href');
+            // Show bank details and confirm
+            if (confirm('Please make payment to the bank account shown. After payment, we will verify and process your order.')) {
+                document.getElementById('bankPaymentForm').submit();
+            }
         }
     });
 
-    // Auto-format phone number
-    const mpesaPhoneInput = document.getElementById('mpesaPhone');
-    if (mpesaPhoneInput) {
-        mpesaPhoneInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
+    // Auto-fill delivery address from user profile
+    {% if user_profile and user_profile.address %}
+    document.getElementById('deliveryAddress').value = "{{ user_profile.address|escapejs }}";
+    {% endif %}
 
-            // Auto-add 0 if starting with 7
-            if (value.length > 0 && value[0] === '7') {
-                value = '0' + value;
+    // Pre-select M-Pesa as default payment method
+    window.addEventListener('load', function() {
+        if (!document.querySelector('.payment-option.selected')) {
+            const mpesaOption = document.querySelector('.payment-option[data-payment="mpesa"]');
+            if (mpesaOption) {
+                mpesaOption.click();
             }
+        }
 
-            // Limit to 10 digits
-            if (value.length > 10) {
-                value = value.substring(0, 10);
-            }
-
-            e.target.value = value;
-        });
-    }
-
-    // Auto-select M-Pesa as default payment method
-    document.addEventListener('DOMContentLoaded', function() {
-        const mpesaOption = document.querySelector('.payment-option[data-payment="mpesa"]');
-        if (mpesaOption && !document.querySelector('.payment-option.selected')) {
-            mpesaOption.click();
+        // Set default phone number if empty
+        const phoneField = document.getElementById('mpesaPhone');
+        if (phoneField && !phoneField.value) {
+            phoneField.value = '0712759133';
         }
     });
 });
